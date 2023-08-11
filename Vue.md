@@ -1,3 +1,5 @@
+# Vue
+
 ### Vue配置
 
 Vue是用于构建用户界面的渐进式框架
@@ -7,6 +9,7 @@ Vue是用于构建用户界面的渐进式框架
 我们需要node.js里的npm。
 去官网![node.js](https://nodejs.org/en/)下载安装包
 ![](https://qgt-document.oss-cn-beijing.aliyuncs.com/P3-5-Vue/1/img/nodejs%E6%88%AA%E5%9B%BE.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
 * 12.14.1LTS稳定版，版本较低
 * 13.7.0Current最新版
 
