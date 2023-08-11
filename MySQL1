@@ -1,0 +1,2533 @@
+### 表格的结构
+
+前面我们已经学习了关系数据库的结构以及形式化定义，我们来看一下表格由那些元素构成：
+
+> *  表由表名、行、列、列名构成
+
+> *  表名是表的名称
+
+> * 列名表示列的名字，列名不可以重复
+
+> * 表格实质上是一个二维数组，列和行都是从0开始数的（数组的特性）
+
+### 数据库和表
+
+在深入学习后，我们可以在我们的云服务器上创建一个数据（database），在云服务器上我们可以创建很多DB，他们共用一个云服务，我们配置链接的是其中一个数据库。之后我们涉及的所有表都在外面配置的数据库下：
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-3/db1.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+
+
+**表名**
+
+表名就是表格名，一般用英文小写字母来约定表明，比如用户我们命名为``user``，
+
+> 一般来说，英文名可以使用翻译软件，尽量不要使用拼音
+
+遇见多个单词，用``_``分隔，比如支付表格，我们可以命名为``pay_record``，这种命名方式我们称为驼峰命名。一般在数据库中，我们将表明、字段名都小写，将数据库操作语句都大写。
+
+
+
+**字段**
+
+
+
+在数据库表中，每一列都是一个字段，第一行是字段名，下面都是字段的值
+
+，我们读取数据时，从第二行开始读取，对应的数组下标为0；
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-1/%E5%AD%A6%E7%94%9F%E8%A1%A8.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+字段必须时唯一的，不能出现同名的字段。字段用来约定的值，或者和其他的表格产生练习。字段的值可以为NULL；
+
+> 这里我要提一下，关于NULL的概念我们之后会涉及到，在现在规范的数据库设计中，允许为NULL的情况需要尽量避免，既保证所有的数据都有值
+
+
+
+**主键**
+
+每一张数据库表都可以有一个主键（primary key）,主键最大的作用是用来标识数据，数据就像我们人，名字可能会重复，生日可以会一样，但身份证号是肯定每个人都不一样的，身份证号就是社会体系辨别我们每个人谁是谁的主键。理论上表格可以没有主键，但是现在的规范表格设计中，必须要有主键。这就像一个人她可以在深山野林生孩子，不给孩子登记身份证号，他的孩子就会是一个黑户，各种权利都会收到限制。
+
+
+
+主键拥有以下的特点：
+
+
+
+* 主键是一个特殊字段
+
+* 表格可以没有主键，但是最多只能拥有一个主键
+
+* 主键的值不能为NULL，必须有对应的值
+
+* 主键的值必须是绝对唯一的，即不能出现两个相同的主键值，比如名字就不能作为主键，因为会出现重名的情况
+
+* 我们一般使用主键和其他表进行关联
+
+> 主键也可以用多个字段联合组成一个主键。但用的很少，在我们初级学习阶段只需要了解
+
+
+
+### SQL常用的数据类型
+
+字段的值拥有数据类型，在Mysql中我们常用的数据类型有：
+
+
+
+VERCHAR   可变的长字符串，可以类比于Java中的String类型
+
+INT   整形，和Java中的int类型一致
+
+DOUBLE 浮点型，和Java中的double类型一致，一般不加长度限制
+
+DATETIME  时间类型，长度为0，格式为YYYY-MM-DD HH:MM:SS,值为2019-12-31 23：59：59
+
+BIGINT 长整型，和Java中的long类型一致
+
+
+
+> 数据库中常用的类型就是以上这些，其他类型我们可以在之后的学习中不断的接触。NULL表示这个字段的值没有填写，可以对值为NULL的字段重新赋值
+
+
+
+### 数据
+
+我们通常把表格中的一行称为一条数据，都学习过HashMap，想必对key-value这种键-值对的存储形式并不陌生，数据库的一条数据就像是value，而主键就像是它的key，我们通过主键来快速查找数据，也可以通过其他字段来操作数据。
+
+
+
+### CRUD
+
+在计算机程序语言中，创建(Create)、读取(Read)、更新(Update)、删除(Delete)，也就是CRUD。这是一连串常见的动作行为，而其行为通常是为了针对某个特定资源所做出的举动（例如：创建数据、读取数据等）。这四个行为最常见的用途能够在使用SQL数据库与网站的API端口时发现。这个词语（CRUD）最早被记载于James Martin所撰写的Managing the Data-base Environment书中。
+
+
+
+在SQL中，我们拥有对应的专业术语：
+
+英文  中文  SQL       HTTP
+
+CREATE 创建  INSERT（插入） POST
+
+READ  读取  SELECT（查询） GET
+
+UPDATE 更新  UPDATE     POST
+
+DELETE 删除  DELETE     DELETE
+
+
+
+### 创建表格
+
+在创建表格的时候我们需要提供以下的属性：
+
+* 表明
+
+* 字段名
+
+* 字段的数据类型
+
+举个例子，马婕的公司需要记录用户的信息，要创建一张用户表，用户包含用户id，昵称，手机号这三个字段，同时我们需要记录创建时间和修改时间，我们来看一下创建表格的代码：
+
+```
+CREATE TABLE `user`(
+
+  `id` INT(10)NOT NULL,
+
+  `mobile` VARCHAR(11) NOT NULL,
+
+  `nickname` VARCHAR(40) NOT NULL,
+
+  `gmt_created` datetime,
+
+  `gmt_modified` datetime NOT NULL,
+
+  PRIMARY KEY(`id`)
+
+)ENGINE=InnoDB DEFAULT CHARSET=utf-8;
+```
+
+看起来很复杂吧，不着急，我们来一点点拆解它：
+
+
+
+**创建表格**
+
+```
+CREATE TABLE `user()`
+```
+
+这一行的意思是，我们创建一张叫做``user``的表格
+
+
+
+**创建字段**
+
+来看定义字段的语句：
+
+```
+id` INT(10)NOT NULL,
+
+`mobile` VARCHAR(11) NOT NULL,
+
+`nickname` VARCHAR(40) NOT NULL,
+
+`gmt_created` datetime,
+
+`gmt_modified` datetime NOT NULL,
+```
+
+仔细观察，我们可以看到它们的语法结构都是一样的，都符合：**字段名+数据类型+长度+是否为NULL**
+
+我们以第一句为例：	
+
+* id是字段名，我们用``这个符号把它包含起来。
+
+* INT是数据类型，表示id这个字段是INT值
+
+* （10）表示id最长为10位
+
+* datetime 类型没有长度，所以不用定义长度
+
+* NOT NULL表示这个字段不能为空，也就是必须要输入值，否则就会报错，如果这个值可以为不输入值，那么不加NOT NULL
+
+> 一般来说字段的长度足够用就可以，同时要注意值域，比如INT的最大值为2147483647，长度为10位，所以上面的语句中，id最大只能这么大，如果超过这个数，我们可以使用BIGINT，避免数据溢出的问题
+
+
+
+**约定主键**
+
+```
+PRIMARY KEY (`id`)
+```
+
+
+
+意思是，这张表格的主键（primary key）是id这个字段
+
+
+
+主键拥有以下特点：
+
+* 主键必须是已经约定的字段
+
+* 主键不能为空
+
+* 主键的值不能重复
+
+* 主键最大的作用是表示，所以它最好是由计算机生成，人工不干预主键生成后的值
+
+有时候我们会把INT类型的主键语句改为：
+
+```
+`id` INT UNSIGNED AUTO_INCREMENT
+```
+
+
+
+> > UNSIGNED是指无符号的，也就是说排除了负数，但是数据库默认是从1开始累计，所以这个关键词可以省略。
+>
+> > 在企业级开发中，往往会使用BIGINT作为主键，因为我们知道INT的值域只有2147483647这么大，也就是20亿多，有些公司用户数达到百万甚至千万，那么记录用户行为的数据，比如说支付宝账单，就很轻松会突破INT的值域，因此使用BIGINT会避免数据溢出的问题
+
+
+
+**设置存储引擎和编码方式**
+
+```
+ENGINE=InnoDB DEFAULT CHARSET=utf-8
+```
+
+
+
+这句话的意思是存储引擎为InnoDB，默认的编码方式为utf-8.
+
+> InnoDB是MYSQL的默认存储引擎，utf-8是一种编码方式
+>
+> > 这句话死记硬背就可以啦
+
+
+
+**符号**
+
+
+
+我们已经学习了创建表格的语法，在这段语句中出现了很多符号，我们来总结一下：
+
+
+
+* 所有的符号都是英文输入法输入的
+
+* ``这个符号叫做反引号，是用来过滤数据库关键字，比如我们会把它加在字段名和表名外面，避免字段名和表明根MySQL系统的关键字冲突
+
+> 注意和VARCHAR类型的单引号''符号做区分
+
+![](https://style.youkeda.com/newcoursep4/d1/d1-3/keyboard.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+* 定义字段的语句，语句间有，最后一句后面没有
+
+* SQL语句以；结尾
+
+
+
+**关键字和保留字**
+
+在数据中有很多关键字和保留字，就像Java中的public class这些单词一样，关键字和保留字不需要特别去记忆，我们只需要注意，遇到关键字和保留字的时候，用``这个符号去过滤掉它，这样它就会被视为普通单词。
+
+那么问题来了，我们如何知道哪些词是关键字或者保留字呢？
+
+在外面的编译器中，当你看到单词变成了这个颜色，说明它是关键字：
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-3/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A120200526110137.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+
+
+### 创建表格补充
+
+```
+CREATE TABLE IF NOT EXISTS `runoob_tbl`(
+   `runoob_id` INT UNSIGNED AUTO_INCREMENT,
+   `runoob_title` VARCHAR(100) NOT NULL,
+   `runoob_author` VARCHAR(40) NOT NULL,
+   `submission_date` DATE,
+   PRIMARY KEY ( `runoob_id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+
+解析：
+
+* 如果你不想字段为 **NULL** 可以设置字段的属性为 **NOT NULL**， 在操作数据库时如果输入该字段的数据为**NULL** ，就会报错。
+* AUTO_INCREMENT定义列为自增的属性，一般用于主键，数值会自动加1。
+* PRIMARY KEY关键字用于定义列为主键。 您可以使用多列来定义主键，列间以逗号分隔。
+* ENGINE 设置存储引擎，CHARSET 设置编码。
+
+**通过命令提示符创建表**
+
+```
+root@host# mysql -u root -p
+Enter password:*******
+mysql> use RUNOOB;
+Database changed
+mysql> CREATE TABLE runoob_tbl(
+   -> runoob_id INT NOT NULL AUTO_INCREMENT,
+   -> runoob_title VARCHAR(100) NOT NULL,
+   -> runoob_author VARCHAR(40) NOT NULL,
+   -> submission_date DATE,
+   -> PRIMARY KEY ( runoob_id )
+   -> )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+Query OK, 0 rows affected (0.16 sec)
+mysql>
+```
+
+**注意：**MySQL命令终止符为分号 **;** 。
+
+**注意：** **->** 是换行符标识，不要复制。
+
+
+
+
+
+**删除表格**
+
+删除表格的语法非常简单：
+
+```
+drop table table_name;
+```
+
+有时候我们也这样写：
+
+```
+DROP TABLE IF EXISTS table_name;
+```
+
+> table_name是指你要删除的表格名 IF EXISTS的意思是如果存在，因为删除表格是不可逆的，所以在删除表格时，务必慎重。
+
+**删除表格补充**
+
+```
+root@host# mysql -u root -p
+Enter password:*******
+mysql> use RUNOOB;
+Database changed
+mysql> DROP TABLE runoob_tbl;
+Query OK, 0 rows affected (0.8 sec)
+mysql>
+```
+
+
+
+### 插入语句（INSERT）
+
+在Mysql中，我们使用INSERT INTO SQL 语句来插入数据
+
+**语法**
+
+我们来看一下语法：
+
+```
+INSERT INTO table_name(field1,field2,...fieldN)
+
+VALUES
+
+(value1,value2,...valueN);
+```
+
+
+
+这句话的意思是，我们向指定表插入若干个字段，和他们对应的值，还记得我们上面写的那张user表吗，按照这个语法，我们可以把INSERT语句这么写：
+
+```
+CREATE TABLE `user`(
+
+  `id` INT(10)NOT NULL,
+
+  `mobile` VARCHAR(11) NOT NULL,
+
+  `nickname` VARCHAR(40) NOT NULL,
+
+  `gmt_created` datetime,
+
+  `gmt_modified` datetime NOT NULL,
+
+  PRIMARY KEY(`id`)
+
+);
+INSERT INTO 
+`user`
+VALUE
+(1,'222','马婕',now(),now());
+```
+
+
+
+我们来看一下这段语句的重点：
+
+* user是表明
+
+* id、mobile等是字段名 
+
+* id的值是数字，可以直接写，比如1
+
+* mobile的值是VARCHAR类型，所以要用``''``包含
+
+* gmt_created是datetime类型，我们一般使用now（）这个函数来获取服务器当前时间，并将它作为值插入
+
+
+
+**插入语句的简化**
+
+**1.** 如果主键设置为自增，则可以不插入主键和对应的数据
+
+**1.** 如果插入的是所有的字段，可以省略字段名，直接插入值，但是类型必须全部一致，比如：
+
+```
+INSERT INTO table_name
+
+VALUES
+
+(value1,value2,...valueN);
+```
+
+
+
+> 这两种情况不可以同时简化
+
+
+
+**批量插入数据**
+
+如果要一次性对一张表格插入大量数据，我们可以使用下面的语法：
+
+```
+INSERT INTO table_name
+
+VALUES
+
+(value1,value2,...valueN),
+
+(value1,value2,...valueN);
+```
+
+
+
+> 插入一条数据对应表格中的一行，当规定为NOT NULL的字段没有给到值时，插入语句会报错。
+
+**插入语句的补充**
+
+```
+root@host# mysql -u root -p password;
+Enter password:*******
+mysql> use RUNOOB;
+Database changed
+mysql> INSERT INTO runoob_tbl 
+    -> (runoob_title, runoob_author, submission_date)
+    -> VALUES
+    -> ("学习 PHP", "菜鸟教程", NOW());
+Query OK, 1 rows affected, 1 warnings (0.01 sec)
+mysql> INSERT INTO runoob_tbl
+    -> (runoob_title, runoob_author, submission_date)
+    -> VALUES
+    -> ("学习 MySQL", "菜鸟教程", NOW());
+Query OK, 1 rows affected, 1 warnings (0.01 sec)
+mysql> INSERT INTO runoob_tbl
+    -> (runoob_title, runoob_author, submission_date)
+    -> VALUES
+    -> ("JAVA 教程", "RUNOOB.COM", '2016-05-06');
+Query OK, 1 rows affected (0.00 sec)
+mysql>
+```
+
+**注意：** 使用箭头标记 **->** 不是 SQL 语句的一部分，它仅仅表示一个新行，如果一条SQL语句太长，我们可以通过回车键来创建一个新行来编写 SQL 语句，SQL 语句的命令结束符为分号 **;**。
+
+在以上实例中，我们并没有提供 runoob_id 的数据，因为该字段我们在创建表的时候已经设置它为 AUTO_INCREMENT(自动增加) 属性。 所以，该字段会自动递增而不需要我们去设置。实例中 NOW() 是一个 MySQL 函数，该函数返回日期和时间。
+
+接下来我们可以通过以下语句查看数据表数据：
+
+```
+select * from runoob_tbl;
+```
+
+输出结果：
+
+![](https://www.runoob.com/wp-content/uploads/2014/03/71971E68-78B3-4964-AC4C-E75114D3B5B5.jpg)
+
+
+
+### 查询（SELECT）
+
+```
+SELECT 
+
+ field1,field2,......
+
+FORM
+
+ table_name;
+```
+
+
+
+这句话的意思是，我们从指定表中查询指定列的信息。参考我们的user表，语句可以这么写：
+
+```
+SLELCT
+
+ id,
+
+ hero_name
+
+FORM
+
+ timi_adc;
+```
+
+
+
+如果我们要查询所有的字段，那么SQL语句可以这么写：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc;
+```
+
+
+
+> 这里用*表示所有的字段
+
+
+
+### as
+
+在mysql中，select查询可以使用AS关键字为查询的字段起一个别名，该别名用作表达式的列名，并且别名可以在GROUP BY，ORDER BY或HAVING等语句中使用
+
+**重命名列名或者表名。**
+as可理解为：用作、当成，作为；一般是重命名列名或者表名。（主要为了查询方便）
+
+重命名列。如：表text， 列 column_1,column_2 你可以写成：
+
+```
+select  column_1  as  列1,column_2 as  列2   from  text as  表;
+```
+
+上面的语句可以解释为：选择 column_1 作为 列1，column_2 作为 列2 从 text 当成 表。
+
+
+
+重命名表。
+
+```
+select * from blog as B;
+select *from B;
+```
+
+> 查找所有blog 表里面的数据，并把blog表格命名为 B；当你命名一个表之后，你可以在下面用 B 代替 blog；
+
+连接语句的操作符
+as可以作为连接语句的操作符。
+
+```
+create table  tablename as select * from tablename2;
+```
+
+> 上面语句的意思就是先获取到tablename表中的所有记录，之后创建一张tablename表，结构和tablename2表相同，记录为后面语句的查询结果。
+
+
+
+### CASE WHEN
+
+Case具有两种格式。简单Case函数和Case搜索函数。
+
+简单Case函数格式：
+
+```
+CASE 列名
+WHEN 条件值1 THEN 选项1
+WHEN 条件值2 THEN 选项2
+……
+ELSE 默认值
+END
+123456
+```
+
+> 列名，这里是sex，如果放在case后，则显示在屏幕上的列名即为列名sex
+
+Case搜索函数：
+
+```
+CASE
+WHEN 条件1 THEN 选项1
+WHEN 条件2 THEN 选项2
+……
+ELSE 默认值
+END
+123456
+```
+
+> 列名，这里是sex，如果放在when后，若是不为整个CASE WHEN语句写个别名的话，则显示在屏幕上的列名即为整个CASE WHEN语句
+
+**例子**
+
+1. 
+
+leetcode1873.计算特殊奖金
+
+```
+SELECT employee_id,
+(
+    CASE 
+        WHEN mod(employee_id,2)!=0
+    AND 
+        name NOT LIKE 'M%'
+    THEN
+        salary
+    ELSE 
+        0
+    END
+)
+AS bonus
+FROM Employees
+ORDER BY
+    employee_id;
+```
+
+2. 
+
+leetcode627.性别变更
+
+```
+UPDATE Salary
+
+SET sex = (case sex when 'm' then'f' when 'f' then 'm' end);
+
+```
+
+
+
+**WHERE子句**
+
+
+
+在MYSQL中我们使用WHERE语句来限定条件，它的作用类似于程序语句中的if语句。我们可以将WHERE子句加入到查询语句。
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ table_name
+
+WHERE
+
+ condition;
+```
+
+
+
+> condition是指条件，它和if语句一样，可以做简单的逻辑判断，我们查询到的数据是true
+
+比如我们想查询胜率超过50%的射手英雄
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ win_rate > 0.5;
+```
+
+| 操作符 | 描述                                                         | 实例                 |
+| :----- | :----------------------------------------------------------- | :------------------- |
+| =      | 等号，检测两个值是否相等，如果相等返回true                   | (A = B) 返回false。  |
+| <>, != | 不等于，检测两个值是否相等，如果不相等返回true               | (A != B) 返回 true。 |
+| >      | 大于号，检测左边的值是否大于右边的值, 如果左边的值大于右边的值返回true | (A > B) 返回false。  |
+| <      | 小于号，检测左边的值是否小于右边的值, 如果左边的值小于右边的值返回true | (A < B) 返回 true。  |
+| >=     | 大于等于号，检测左边的值是否大于或等于右边的值, 如果左边的值大于或等于右边的值返回true | (A >= B) 返回false。 |
+| <=     | 小于等于号，检测左边的值是否小于或等于右边的值, 如果左边的值小于或等于右边的值返回true | (A <= B) 返回 true。 |
+
+MySQL 的 WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY 关键字来设定 WHERE 子句的字符串比较是区分大小写的。
+
+如下实例:
+
+## BINARY 关键字
+
+mysql> SELECT * from runoob_tbl WHERE BINARY runoob_author='runoob.com'; Empty set (0.01 sec)  
+
+
+
+mysql> SELECT * from runoob_tbl WHERE BINARY runoob_author='RUNOOB.COM'; 
+
++-----------+---------------+---------------+-----------------+ 
+
+| runoob_id | runoob_title | runoob_author | submission_date |
+| --------- | ------------ | ------------- | --------------- |
+|           |              |               |                 |
+
+ +-----------+---------------+---------------+-----------------+ 
+
+| 3    | JAVA 教程 | RUNOOB.COM | 2016-05-06 |
+| ---- | --------- | ---------- | ---------- |
+|      |           |            |            |
+
+| 4    | 学习 Python | RUNOOB.COM | 2016-03-06 |
+| ---- | ----------- | ---------- | ---------- |
+|      |             |            |            |
+
+ +-----------+---------------+---------------+-----------------+
+
+ 2 rows in set (0.01 sec)
+
+实例中使用了 **BINARY** 关键字，是区分大小写的，所以 **runoob_author='runoob.com'** 的查询条件是没有数据的。
+
+### Limit子句
+
+我们需要返回指定行，比如我想返回符合某个条件的前十个数据，这时候需要使用LIMIT子句来加强查询功能。
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ table_name
+
+LIMIT
+
+ parameter;
+```
+
+
+
+parameter是LIMIT语句的参数，我们来看以下情况：
+
+
+
+**查询第x-y行**
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+LIMIT
+
+ 5.6;
+```
+
+
+
+> 这句SQL的意思是查询timi_adc表的第6-11行，第一个参数5表示从第六行开始查，第二个参数是6，表示一共查询6条记录。
+
+> 数据库的表格类似于数组，是从第0行开始数的，所以5表示第6行。
+
+> LIMIT语句一般是配合分页使用的，比如我们在购物软件上，每一页都是由固定的商品数。
+
+
+
+**查询0-x行**
+
+```
+SLELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+LIMIT
+
+ 5;
+```
+
+
+
+> 这句SQL语句的意思是查询user表的0-5行，也就是说这句话等价于：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+LIMIT
+
+ 0,5;
+```
+
+
+
+
+
+**查询第x行**
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+LIMIT
+
+ 4,1;
+```
+
+
+
+> 查询timi_adc表第5行的数据。
+
+**和WHERE子句联合使用**在实际应用场景中，LIMIT子句往往和WHERE等其他子句联合使用，LIMIT语句会放在WHERE语句后面，比如我们要查询timi_adc表中登场率大于10%的前五条数据：
+
+```
+SELECT
+
+ *
+
+FORM
+
+ timi_adc
+
+WHERE
+
+ appearance_rate > 0.1
+
+LIMIT
+
+ 0,5;
+
+```
+
+**查询补充**
+
+```
+select _column,_column from _table [where Clause] [limit N][offset M]
+```
+
+-  **select \*** : 返回所有记录
+-  **limit N** : 返回 N 条记录
+-  **offset M** : 跳过 M 条记录, 默认 M=0, 单独使用似乎不起作用
+-  **limit N,M** : 相当于 **limit M offset N** , 从第 N 条记录开始, 返回 M 条记录
+
+实现分页：
+
+```
+select * from _table limit (page_number-1)*lines_perpage, lines_perpage
+
+或
+
+select * from _table limit lines_perpage offset (page_number-1)*lines_perpage
+```
+
+
+
+### UNION关键字
+
+**描述**
+
+MySQL UNION 操作符用于连接两个以上的 SELECT 语句的结果组合到一个结果集合中。多个 SELECT 语句会删除重复的数据。
+
+**语法**
+
+MySQL UNION 操作符语法格式：
+
+```
+SELECT expression1, expression2, ... expression_n
+FROM tables
+[WHERE conditions]
+UNION [ALL | DISTINCT]
+SELECT expression1, expression2, ... expression_n
+FROM tables
+[WHERE conditions];
+```
+
+**参数**
+
+- **expression1, expression2, ... expression_n**: 要检索的列。
+- **tables:** 要检索的数据表。
+- **WHERE conditions:** 可选， 检索条件。
+- **DISTINCT:** 可选，删除结果集中重复的数据。默认情况下 UNION 操作符已经删除了重复数据，所以 DISTINCT 修饰符对结果没啥影响。
+- **ALL:** 可选，返回所有结果集，包含重复数据。
+
+
+
+在实际应用场景中，我们有时候需要联合查询所有的内容，就像下图这样：
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-5/v2-b8160a25515c266b28c22f19a61f93d8_1440w.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+比如我们现在想要查询A表中所有的学生和B表中所有的学生，不管他们是否参加了考试，有没有成绩，我们应该这样写：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ Table_A
+
+ LEFT JOIN Table_B
+
+ON
+
+ Table_A.id = Table_B.student_id
+
+UNION DISTINCT
+
+SELECT
+
+ *
+
+FROM
+
+ Table_A
+
+ RIGHT JOIN Table_B ON Table_A.id = Table_B.student_id;
+```
+
+
+
+> 这句话相当于同时执行AB表的左右连接
+
+
+
+UNION关键字可以将两个查询语句的结果合并，并去除重复数据，UNION DISTINCT和UNION效果一样，所以我们一般直接使用UNION.
+
+> 一般来说我们要求查询得到的数据是去重的，在极少数情况下我们需要展示不去重的数据，我们可以把DISTINCT关键词换为ALL关键词。
+
+**UNION实例**
+
+我们先创建两张表
+
+```
+mysql> SELECT * FROM Websites;
++----+--------------+---------------------------+-------+---------+
+| id | name         | url                       | alexa | country |
++----+--------------+---------------------------+-------+---------+
+| 1  | Google       | https://www.google.cm/    | 1     | USA     |
+| 2  | 淘宝          | https://www.taobao.com/   | 13    | CN      |
+| 3  | 菜鸟教程      | http://www.runoob.com/    | 4689  | CN      |
+| 4  | 微博          | http://weibo.com/         | 20    | CN      |
+| 5  | Facebook     | https://www.facebook.com/ | 3     | USA     |
+| 7  | stackoverflow | http://stackoverflow.com/ |   0 | IND     |
++----+---------------+---------------------------+-------+---------+
+```
+
+```
+mysql> SELECT * FROM apps;
++----+------------+-------------------------+---------+
+| id | app_name   | url                     | country |
++----+------------+-------------------------+---------+
+|  1 | QQ APP     | http://im.qq.com/       | CN      |
+|  2 | 微博 APP | http://weibo.com/       | CN      |
+|  3 | 淘宝 APP | https://www.taobao.com/ | CN      |
++----+------------+-------------------------+---------+
+3 rows in set (0.00 sec)
+```
+
+然后，我们需要从这两张表中选取所有**不同的**country（只有不同的值）：
+
+```
+SELECT
+	country
+FROM
+	Websites
+UNION
+SELECT
+	country
+FROM
+	apps
+ORDER BY
+	country;
+```
+
+![](https://www.runoob.com/wp-content/uploads/2013/09/union1.jpg)
+
+> UNION不能用于列出两个表中所有的country。如果一些网站和app来自同一个国家，每个国家只会列出一次。UNION只会选取不同的值。请使用UNION ALL来选取重复的值。
+
+**UNION ALL实例**
+
+```
+SELECT
+	country
+FROM
+	Websites
+UNION ALL
+SELECT
+	country
+FROM
+	apps
+ORDER BY
+	country;
+```
+
+![](https://www.runoob.com/wp-content/uploads/2013/09/union2.jpg)
+
+
+
+**带有WHERE的UNION ALL**
+
+下面的 SQL 语句使用 UNION ALL 从 "Websites" 和 "apps" 表中选取**所有的**中国(CN)的数据（也有重复的值）：
+
+**实例**
+
+SELECT country, name FROM Websites
+WHERE country='CN'
+UNION ALL
+SELECT country, app_name FROM apps
+WHERE country='CN'
+ORDER BY country;
+
+执行以上 SQL 输出结果如下：
+
+![img](https://www.runoob.com/wp-content/uploads/2013/09/AAA99C7B-36A5-43FB-B489-F8CE63B62C71.jpg)
+
+
+
+
+
+### 排序（ORDER BY子句）
+
+```
+SELECT
+
+ *
+
+FROM
+
+ table_name
+
+ORDER BY
+
+ field_name;
+```
+
+马婕想知道所有的射手的胜率排序，我们可以这么写查询语句：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+ORDER BY
+
+ win_rate;
+```
+
+
+
+> 排序默认按照升序排序，对于int,double而言，是从小到大，对于varchar而言，是从字母A到Z，对于datetime而言，是从过去到现在
+
+
+
+**DESC关键词**
+
+ORDER BY语句的排序默认是正序排序，关键词是ASC（一般不写），我们可以通过加上关键词DESC，使排序变为逆序，比如上面的代码中，我们想看胜率从高到低排序：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+ORDER BY
+
+ win_rate DESC
+
+LIMIT
+
+ 3;
+```
+
+> 一般我们会先排序，再加上LIMIT条件。
+
+
+
+### 更新/删除
+
+
+
+```
+UPDATE
+
+ 表名称
+
+SET
+
+ 列名称 = 新值
+
+WHERE
+
+ 列名称 = 某值
+```
+
+
+
+> UPDATE语句我们必须加入WHERE限定条件，否则的话UPDATE语句就会对整列起作用。
+
+
+
+比如我们要将timi_adc表格中艾琳这个英雄的ban率调为1%，那么我们应该这么写
+
+```
+UPDATE
+
+ timi_adc
+
+SET
+
+ ban_rate = 0.01
+
+WHERE
+
+ hero_name = '艾琳';
+```
+
+
+
+> 一定要注意加上WHERE限定语句，否则所有的英雄的ban率都会被改为0.01 UPDATE语句不关心原有的值
+
+
+
+**删除语句（DELETE）**
+
+
+
+```
+DELETE FROM
+
+ table_name
+
+WHERE
+
+ clause
+```
+
+
+
+> 由于删除语句是不可恢复的，所以我们务必要增加WHERE语句，否则将会删除整张表格的数据
+
+
+
+DELETE语句的几种应用场景：
+
+
+
+删除user表的id为4的行：
+
+```
+delete from
+
+ user
+
+where
+
+ id=4;
+```
+
+
+
+删除user表中所有id小于20的数据：
+
+```
+delete from
+
+ `user`
+
+where
+
+ id<20;
+```
+
+
+
+删除user表中所有数据：
+
+```
+delete from
+
+user;
+```
+
+
+
+> DELETE语句只删除表中的数据，如果要删除表格，我们用之前学过的DROP TABLE + 表名的语句
+
+
+
+
+
+**例子**
+
+对youkeda_update_delete_test这张表进行排序，由年龄从高到低排序，并删除年龄最大的21条数据。
+
+```
+SELECT
+
+ *
+
+FROM
+
+ youkeda_update_delete_test
+
+ORDER BY
+
+ age DESC
+
+LIMIT
+
+ 20;
+
+
+
+
+
+DELETE FROM
+
+ youkeda_update_delete_test
+
+WHERE
+
+ age>=83;
+
+
+
+
+
+/*
+
+ SELECT
+
+ *
+
+FROM
+
+ youkeda_update_delete_test
+
+ORDER BY
+
+ age DESC
+
+LIMIT
+
+ 20;
+
+-- 查询得到匹配条件的年龄值，这里是83
+
+DELETE FROM
+
+ youkeda_update_delete_test
+
+WHERE
+
+ age >= 83;
+
+ */
+```
+
+**例子**
+
+leetcode196.删除重复的电子邮箱
+
+```
+DELETE p1 
+FROM
+    Person p1,Person p2
+WHERE
+    p1.email = p2.email
+    and
+    p1.id>p2.id;
+```
+
+**删除的实例**
+
+```
+mysql> use RUNOOB;
+Database changed
+mysql> DELETE FROM runoob_tbl WHERE runoob_id=3;
+Query OK, 1 row affected (0.23 sec)
+```
+
+
+
+### LIKE查询
+
+```
+select * from table_name where condition like condition;
+```
+
+
+
+**%**
+
+SQL LIKE语句中，我们使用百分号%字符来表示任意字符，如果我们没有使用任何的%，那此时like就相当于``=``
+
+
+
+比如我们想搜索timi_adc表中名字带孙的射手，我们可以这么写
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ hero_name LIKE '%孙%'
+```
+
+
+
+%的位置会决定搜索结果的不同，'%孙%'表示这个字符串含孙，'孙%'表示这个字符串以孙开头，'%孙'表示这个字符串以孙结尾。
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ hero_name LIKE '孙%';
+
+
+
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ hero_name LIKE '%孙'；
+```
+
+
+
+当我们忘记全名，只记得他叫树，
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ hero_name LIKE '_树';
+```
+
+
+
+> _树和%树的区别在于，假如有一个人叫原野贵树，前者查询不到，后者可以。
+
+
+
+### AND&OR
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ table_name
+
+WHERE
+
+ conditionA
+
+AND/OR
+
+ conditionB;
+```
+
+
+
+比如我们要查询timi_adc表中胜率为50%-51%或者胜率低于47%的英雄：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ win_rate>0.5
+
+ AND win_rate<0.51
+
+ OR win_rate<0.47;
+```
+
+
+
+有时候需要加上（）来分隔条件
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+(
+
+ win_rate > 0.5
+
+ OR win_rate < 0.47
+
+)
+
+AND win_rate<0.51;
+```
+
+
+
+这样我们可以查询到5条数据
+
+而这样写：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ win_rate > 0.5
+
+ OR(
+
+  win_rate < 0.47
+
+  AND win_rate < 0.51
+
+ );
+```
+
+
+
+这样可以查询到9条数据。
+
+
+
+### IN/NOT IN
+
+```
+SELECT
+
+ *
+
+FROM
+
+ table_name
+
+WHERE
+
+ column IN(conditionA,conditionB);
+```
+
+
+
+比如我们要查询timi_adc表中热度为T0和T3的英雄，那么我们可以这么写
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ fever IN('T0','T3')；
+```
+
+
+
+等价于
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ fever = 'T0'
+
+ OR fever = 'T3';
+```
+
+
+
+### NOT IN/NOT LIKE
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ fever NOT IN('T0');
+```
+
+
+
+比如我们想查询名字里不带孙的英雄，我们可以这样写：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ hero_name NOT LIKE'%孙%';
+```
+
+
+
+### GROUP BY
+
+GROUP BY 语句根据一个或多个列对结果集进行分组。
+
+在分组的列上我们可以使用 COUNT, SUM, AVG,等函数。
+
+**GROUP BY 语法**
+
+```
+SELECT column_name, function(column_name)
+FROM table_name
+WHERE column_name operator value
+GROUP BY column_name;
+```
+
+
+
+比如说我们有如下的表：
+
+```
++----+--------+---------------------+--------+
+| id | name   | date                | signin |
++----+--------+---------------------+--------+
+|  1 | 小明 | 2016-04-22 15:25:33 |      1 |
+|  2 | 小王 | 2016-04-20 15:25:47 |      3 |
+|  3 | 小丽 | 2016-04-19 15:26:02 |      2 |
+|  4 | 小王 | 2016-04-07 15:26:14 |      4 |
+|  5 | 小明 | 2016-04-11 15:26:40 |      4 |
+|  6 | 小明 | 2016-04-04 15:26:54 |      2 |
++----+--------+---------------------+--------+
+```
+
+接下来我们使用GROUP BY 语句将数据表按名字进行分组，并统计每个人有多少条记录：
+
+```
+mysql> SELECT name, COUNT(*) FROM   employee_tbl GROUP BY name;
++--------+----------+
+| name   | COUNT(*) |
++--------+----------+
+| 小丽 |        1 |
+| 小明 |        3 |
+| 小王 |        2 |
++--------+----------+
+3 rows in set (0.01 sec)
+```
+
+
+
+**使用WITH ROLLUP**
+
+WITH ROLLUP 可以实现在分组统计数据基础上再进行相同的统计（SUM,AVG,COUNT…）。
+
+例如我们将以上的数据表按名字进行分组，再统计每个人登录的次数：	
+
+```
+mysql> SELECT name, SUM(signin) as signin_count FROM  employee_tbl GROUP BY name WITH ROLLUP;
++--------+--------------+
+| name   | signin_count |
++--------+--------------+
+| 小丽 |            2 |
+| 小明 |            7 |
+| 小王 |            7 |
+| NULL   |           16 |
++--------+--------------+
+4 rows in set (0.00 sec)
+```
+
+其中记录 NULL 表示所有人的登录次数。
+
+我们可以使用 coalesce 来设置一个可以取代 NUll 的名称，coalesce 语法：
+
+```
+select coalesce(a,b,c);
+```
+
+参数说明：如果a==null,则选择b；如果b==null,则选择c；如果a!=null,则选择a；如果a b c 都为null ，则返回为null（没意义）。
+
+以下实例中如果名字为空我们使用总数代替：
+
+```
+mysql> SELECT coalesce(name, '总数'), SUM(signin) as signin_count FROM  employee_tbl GROUP BY name WITH ROLLUP;
++--------------------------+--------------+
+| coalesce(name, '总数') | signin_count |
++--------------------------+--------------+
+| 小丽                   |            2 |
+| 小明                   |            7 |
+| 小王                   |            7 |
+| 总数                   |           16 |
++--------------------------+--------------+
+4 rows in set (0.01 sec)
+```
+
+
+
+### NULL
+
+
+
+当提供的查询条件字段为NULL时，该命令可能就无法正常工作。
+
+NULL是Mysql字段的数据类型的属性，本身不属于任何数据类型，NULL也不等于空值，空值是不占用存储空间的，NULL占用存储空间
+
+
+
+**如何处理NULL值**
+
+**1.** IS NULL：当列的值是NULL时，这个运算符返回true
+
+**2.** IS NOT NULL：当列的值不为NULL，这个运算符返回true
+
+**3.** <=>：比较操作符，当比较的两个值都为NULL时或者相等时，返回true
+
+
+
+> 我们不能使用``=NULL``或者``！=NULL``来查找NULL值NULL = NULL会返回NULL
+
+
+
+```
+SELECT
+
+ field_name1,field_name2
+
+FROM
+
+ table_name
+
+WHERE
+
+ field_name2 IS NOT NULL/IS NULL;
+```
+
+
+
+
+
+我们可以根据这个语法查询不为NULL或者为NULL的数据
+
+
+
+我们内置了一张student的表格
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-3/student%E8%A1%A8.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+我们根据语法，想要查询id,mobile,其中mobile不为NULL的数据，我们可以这么写SQL语句
+
+```
+SELECT
+
+ id,
+
+ mobile
+
+FROM
+
+ student
+
+WHERE
+
+ mobile IS NOT NULL;
+```
+
+
+
+我们查询到id,name,grade,并且grade为NULL的数据，我们可以这么写SQL：
+
+
+
+```
+SELECT
+
+ id,
+
+ name,
+
+ grade
+
+FROM
+
+ student
+
+WHERE
+
+ grade IS NULL;
+```
+
+
+
+我们查询到的id结果为5，6，9，和表中符合
+
+
+
+### mod()函数
+
+mod(a,b) 在sql中的意思是 a / b 的余数
+mod(id, 2)=1 是指id是奇数。
+mod(id, 2)=0 是指id是偶数。
+
+
+
+### CONCAT函数
+
+处理字符串的函数
+
+
+
+```
+SELECT
+
+ column_name1,CONCAT(column_name2,str,column_name3),column_name4
+
+FROM
+
+ table_name;
+```
+
+
+
+我们分析一下这个语法：
+
+* 首先这是一个查询语句，最基本的结构是SELECT列名FROM表明
+
+* CONCAT函数可以拼接列名，也可以拼接字符串
+
+* 在使用CONCAT函数的时候可以同时查询到其他的列
+
+* CONCAT函数的参数之间用英文``，``分隔
+
+
+
+比如我们想查询timi_adc表中的英雄id，以及名字+胜率，我们可以利用CONCAT函数，把结果的可阅读性变的更好：
+
+```
+SELECT
+
+ id,
+
+ concat(hero_name,'的胜率是',win_rate)
+
+FROM
+
+ timi_adc;
+```
+
+
+
+我们可以看到查询结果有一列CONCAT，输出的第一条数据是，后羿的胜率是0.4995。
+
+
+
+需要注意的是，如果拼接的值中有NULL，则结果一律为NULL，这是NULL本身的特性决定的。
+
+
+
+**例子**
+
+leetcode1667.修复表中的名字
+
+```
+SELECT
+	user_id,
+	CONCAT(UPPER(LEFT(name,1)),LOWER(RIGHT(name,length(name)-1)))as name
+FROM
+	User
+ORDER BY
+	user_id;
+```
+
+
+
+### 配合WHERE语句查询
+
+比如在上面的的例子中，我们想查询到id=3的数据，那么我们可以这么写：
+
+```
+SELECT
+
+ CONCAT(hero_name,'的胜率是',win_rate)
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ id = 3;
+```
+
+
+
+**别名**
+
+我们优化拼接的结果，给他起一个别名，比如我希望查询结果的列名叫result，那么我们可以这么写：
+
+```
+SELECT
+
+ concat(hero_name,'的胜率是',win_rate)as result
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ id = 3;
+```
+
+
+
+### TRIM函数
+
+
+
+为了保持数据的格式正确，我们经常会使用TRIM函数来清理数据，这节课我们就将学习它。
+
+
+
+语法
+
+```
+TRIM(str)
+```
+
+
+
+TRIM()函数的语法非常简单，就是把需要去除空格的数据放在TRIM()函数的空格里面，比如我们现在向timi_adc中插入两条新数据
+
+```
+INSERT INTO
+
+ timi_adc
+
+VALUES
+
+ (
+
+  20,
+
+  '   鲁班七号',
+
+  'T1   ',
+
+  0.5111,
+
+  0.2300,
+
+  0.0944,
+
+  now(),
+
+  now()
+
+ ),
+
+ (
+
+  21,
+
+  '   后羿   ',
+
+  'QT1Q',
+
+  0.5111,
+
+  0.2300,
+
+  0.0944,
+
+  now(),
+
+  now()
+
+ );
+```
+
+
+
+比如我们想要查询id为20的姓名和热度，我们期望去掉数据中的空格，我们可以这么写：
+
+```
+SELECT
+
+ trim(hero_name),
+
+ trim(fever)
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ id = 20;
+```
+
+
+
+trim()函数可以去掉查询结果中的空格，但是不会修改原数据，修改原数据许哟啊配合UPDATE/DELETE语句使用
+
+
+
+**语法拓展**
+
+
+
+``trim()``函数也可以精确的去掉前面或者后面的空格，或者其他的字符:
+
+```
+TRIM(BOTH|LEADING|TRAILING remover_str FROM str);
+```
+
+
+
+* TRIM函数可以加上LEADING来除去前面的空格，或者加上TRAILING来只除去后面的空格，如果都不加，则默认是BOTH
+
+* TRIM函数可以删除指定的字符串内容，如果不加，则默认删除空格。
+
+
+
+比如我们要去除id为21这条数据中fever尾部的Q，那么我们可以这么写查询语句：
+
+```
+SELECT
+
+ TRIM(
+
+  TRAILING'Q'
+
+  FROM
+
+   fever
+
+ )
+
+FROM
+
+ timi_adc
+
+WHERE
+
+ id = 21;
+```
+
+
+
+### REPLACE()函数
+
+TRIM()函数不能去掉字符串中间的值，如果要修改中间的值，我们可以使用REPLACE()函数
+
+```
+UPDATE table_name
+
+SET colunm_name = 
+
+REPLACE(column_name,string_find,string_to_replace)
+
+WHERE conditions;
+```
+
+
+
+它可以把找到的某个字符串替换成另一个字符串，其实我们可以直接用UPDATE语句修改，所以REPLACE()函数的适用性并不高。
+
+
+
+### 左连接
+
+**关联查询**
+
+补充关于![范式](https://www.zhihu.com/question/24696366/answer/29189700)的概念。
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ TableA LEFT JOIN
+
+ TableB
+
+ ON condition;
+```
+
+
+
+* JOIN是关联查询的关键词，基础的结构是TableA JOIN TableB,即表A和表B关联查询，LEFT表示是左连接
+
+* ON是关联查询的条件
+
+* 左连接就是返回左表的所有数据，即使右表没有匹配的数据（此时右表会以NULL的形式匹配数据）。
+
+
+
+比如我们想查询老师们分别上什么课，那么我们需要查询ykd_teacher和ykd_course两张表，假设我们以ykd_teacher为左表，左连接查询，关联条件为ykd_teacher表的主键和ykd_course表中的teacher_id字段相等：
+
+```
+SELECT
+
+ *
+
+FORM
+
+ ykd_teacher
+
+ LEFT JOIN ykd_course ON ykd_teacher.id = ykd_course.teacher_id;
+```
+
+
+
+* ykd_teacher是表A，ykd_course是表B
+
+* ykd_teacher.id是指这张表的id字段，ykd_course.teacher._id是指这张表的teacher_id这个字段
+
+* 我们的查询条件，让上面2个字段相等并匹配
+
+
+
+**表结构设计规范**
+
+互联网公司在使用MySQL设计表结构时，需要遵从以下的规范;
+
+1. 表必须要有主键
+
+2. 一个字段只表示一个含义
+
+3. 总是包含两个日期字段：gmt_created(创建日期),gmt_modified(修改日期)，且这两个字段不应该包含有额外的业务逻辑
+
+4. MySQL中，gmt_created、gmt_modified使用DATETIME类型
+
+5. 禁止使用复杂数据类型（数组，自定义类型等）
+
+6. 禁止使用物理外键，使用逻辑外键
+
+7. 禁止物理删除，使用逻辑删除is_deleted
+
+> 逻辑删除（logical deletion），又被称为软删除，假删除，是一种给数据库操作，使用标记将数据标为不可用，从而不从数据库删除数据本身。使用适当的方法可恢复被删除的数据。
+
+
+
+例子：
+
+关联查询ykd_teacher和ykd_course两张表，关联条件是ykd_teacher表的name和ykd_course表中的name字段相等
+
+```
+SELECT
+
+ *
+
+FROM
+
+ ykd_teacher
+
+ LEFT JOIN ykd_course ON ykd_teacher.name = ykd_course.name;
+```
+
+
+
+> 我们可以看到左表的内容是全的，右表的数据都是NULL，这是因为坐标的name和右表的name并没有关联关系，无法匹配.
+
+
+
+### 右连接
+
+```
+SELECT
+
+ *
+
+FROM
+
+ TableA RIGHT JOIN
+
+ TableB
+
+ ON condition;
+```
+
+
+
+参考上面的例子，现在我们想用右连接查询课程对应的老师
+
+```
+SELECT
+
+ *
+
+FROM
+
+ ykd_teacher
+
+ RIGHT JOIN ykd_course ON ykd_teacher.id = ykd_course.teacher_id;
+```
+
+
+
+在实际应用中，完全匹配的情况比较少，手动执行以下下面的UPDATE语句，将两张表的关联id变的不完全一致：
+
+```
+UPDATE ykd_course
+
+ SET teacher_id = 5
+
+ WHERE teacher_id = 1;
+```
+
+
+
+我们再手动执行一下下面两个关联查询：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ ykd_teacher
+
+ LEFT JOIN ykd_course ON ykd_teacher.id = ykd_course.teacher_id;
+```
+
+
+
+```
+SELECT
+
+ *
+
+FROM
+
+ ykd_teacher
+
+ RIGHT JOIN ykd_course ON ykd_teacher.id = ykd_course.teacher_id;
+```
+
+
+
+我们可以看到查询的结果因为左连接或者右连接不一致，当左连接时，会返回左表的所有数据，当右连接时会返回右表的所有数据。
+
+
+
+### 多表关联查询
+
+在实际情况下，我们有时候会对三张表以上进行关联查询，我们往往会选中一张表作为主表，以它为基准。
+
+> 只会使用``A LEFT JOIN B``,``A LEFT JOIN C``。不要出现``A RIGHT JOIN B``,``B RIGHT JOIN C``这种情况
+
+```
+SELECT
+
+ *
+
+FROM
+
+ TableA 
+
+ LEFT JOIN TableB ON conditionA
+
+ LEFT JOIN TableC ON conditionB;
+```
+
+
+
+比如我们对ykd_student,ykd_course,ykd_teacher这三张表进行关联
+
+```
+SELECT
+
+ *
+
+FROM
+
+ ykd_course
+
+ LEFT JOIN ykd_student ON ykd_student.course_id = ykd_course.id
+
+ LEFT JOIN ykd_teacher on ykd_course.teacher_id = ykd_teacher.id;
+```
+
+
+
+### 内连接
+
+**INNER 连接**
+
+
+
+假设我们需要查询班级A中参与B考试的学生（A、B同时符合某一个条件的数据），得到的数据是内部共有的数据，所以连接方式为内连接（INNER JOIN）：
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-5/A%26B.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+我们可以这么写查询语句
+
+```
+SELECT
+
+ *
+
+FROM
+
+ Table_A
+
+ INNER JOIN Table_B
+
+ON
+
+ Table_A.id = Table_B.student_id;
+```
+
+
+
+> 这里INNER可以省略，只写JOIN，效果是一样的，LEFT JOIN和RIGHT JOIN都属于外连接，和内连接对应。
+
+
+
+**外连接的拓展**
+
+比如我们想查询班级A中没有参与B考试的人员
+
+![](https://qgt-style.oss-cn-hangzhou.aliyuncs.com/newcoursep4/d1/d1-5/v2-dd0093c24ed334d24de6498247d22e6a_1440w.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+我们可以这么写：
+
+```
+SELECT
+
+ *
+
+FROM
+
+ Table_A
+
+ LEFT JOIN Table_B ON Table_A.id = Table_B.student_id
+
+WHERE
+
+ Table_B.student_id IS NULL;
+```
+
+
+
+我们可以看到，查询的结果不包含B表拥有的student_id
+
+
+
+### 笛卡尔积
+
+在实际的应用场景中，有时候还会需要查询可能出现的结果，这个就是数学上的笛卡尔积。假设有表A，包含2条数据，以AB代指，集合B，包含3条数据以abc代指，使用cross join关键词查询，得到的结果会是单纯的乘积，一共2*3=6条数据。
+
+笛卡尔积在MySQL的实际应用中应该是避免的。
+
+> 在MySQL中INNER JOIN ，CROSS JOIN ，JOIN都是等价的，一般INNER JOIN 配合ON使用，CROSS JOIN配合其他条件使用。在其他的SQL语言中，INNER JOIN 和CROSS JOIN并不相同。
+
+
+
+
+
+### 问卷
+
+创建表格
+
+```
+DROP Table if EXISTS user;
+
+
+
+CREATE TABLE user ( 
+
+`id` VARCHAR (40)NOT NULL,
+
+`login_name` VARCHAR (20) NOT NULL,
+
+`password` VARCHAR(50) NOT NULL,
+
+`mobile` VARCHAR(20) NOT NULL,
+
+`email` VARCHAR(50) ,
+
+`name` VARCHAR(50) NOT NULL,
+
+`gender` VARCHAR(10) NOT NULL,
+
+`gmt_created` datetime ,
+
+`gmt_modified` datetime ,
+
+PRIMARY KEY ( `id` )
+
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
+
+DROP Table if EXISTS questionnaire;
+
+
+
+CREATE TABLE questionnaire ( 
+
+`id` VARCHAR (40)NOT NULL,
+
+`title` VARCHAR (40) NOT NULL,
+
+`description` TEXT NOT NULL,
+
+`status` VARCHAR(20) NOT NULL,
+
+`content` TEXT NOT NULL,
+
+`author` VARCHAR(40) NOT NULL,
+
+`gmt_created` datetime ,
+
+`gmt_modified` datetime ,
+
+PRIMARY KEY ( `id` )
+
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+DROP Table if EXISTS reply;
+
+
+
+CREATE TABLE reply ( 
+
+`id` VARCHAR (40)NOT NULL,
+
+`ques_id` VARCHAR (40) NOT NULL,
+
+`ques_index` int(20) NOT NULL,
+
+`user_id` VARCHAR(40) NOT NULL,
+
+`content` TEXT NOT NULL,
+
+`gmt_created` datetime ,
+
+`gmt_modified` datetime ,
+
+PRIMARY KEY ( `id` )
+
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+```
+
+
+
+**1.** 查询email为NULL的用户
+
+**2.** 查询问卷作者的姓名
+
+**3.** 查询答卷者的手机号
+
+```
+SELECT
+
+ *
+
+FROM
+
+ user
+
+WHERE
+
+ email is null;
+
+SELECT
+
+ user.name
+
+FROM
+
+ user
+
+ JOIN questionnaire ON user.id = questionnaire.author;
+
+SELECT
+
+ user.mobile
+
+FROM
+
+ user
+
+ JOIN reply ON user.id = reply.user_id;
+```
+
+
+
+查询在user表中，但是没有在reply表和questionnaire表中的人的姓名和昵称。
+
+```
+SELECT
+
+ login_name,
+
+ name
+
+FROM
+
+ user
+
+ LEFT JOIN reply ON reply.user_id is NULL
+
+ LEFT JOIN questionnaire ON questionnaire.author is NULL
+
+WHERE 
+
+ user.name IS NOT NULL
+
+ and
+
+ user.login_name IS NOT NULL;
+```
