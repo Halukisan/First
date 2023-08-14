@@ -1930,23 +1930,424 @@ export default {
 
 可以根据需要在父组件中插入不同的内容，从而实现更多的灵活性和复用性。
 
+有时候我们需要多个插槽，例如对于一个带有如下模板的组件：
+
+```vue
+<div class="modal" v-if="visible">
+  <div class="modal-content">
+    <header>
+      <!-- 我们希望把页头放这里 -->
+    </header>
+    <main>
+      <!-- 我们希望把主要内容放这里 -->
+    </main>
+    <footer>
+      <!-- 我们希望把页脚放这里 -->
+    </footer>
+  </div>
+</div>
+```
 
 
 
+对于这样的情况，`<slot>`元素有一个特殊的属性：`name`。这个属性可以用来定义额外的插槽
+
+```vue
+<div class="modal" v-if="visible">
+  <div class="modal-content">
+    <header>
+      <slot name="header"></slot>
+    </header>
+    <main>
+      <slot></slot>
+    </main>
+    <footer>
+      <slot name="footer"></slot>
+    </footer>
+  </div>
+</div>
+```
+
+带有name属性的插槽，我们称为**具名插槽**
+
+```vue
+<Modal :visible.sync="visible">
+  <template v-slot:header>
+    <h1>Modal title</h1>
+  </template>
+
+  <div>main content</div>
+  <div>main content</div>
+
+  <template v-slot:footer>
+    <p>Modal footer</p>
+  </template>
+</Modal>
+```
+
+### Vue Router
+
+**单页应用SPA**:
+
+​	单一页面应用程序，只有一个完整的页面，它在加载页面时，不会加载整个页面，而是只更新某个指定的容器中内容。单页面应用SPA的核心之一是：更新视图而不重新请求页面。
+
+**路由**
+
+​	这里的路由指的是SPA的路径管理器
+
+vue的单页应用将路径和组件映射起来，路由用于设定访问路径，由路径之间的切换，实现组件的切换
+
+路由模块的本质就是建立起来url和页面之间的映射关系
+
+#### 安装 配置 vue-router
+
+对于vue工程，我们通常使用命令行的方式进行安装
+
+```
+npm install vue-router
+// 或者
+yarn add vue-router
+```
+
+配置路由
+
+在main.js中进行如下路由配置
+
+```js
+// 0. 导入 Vue 和 VueRouter，要调用 Vue.use(VueRouter)
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+
+Vue.use(VueRouter)
+
+// 1. 定义 (路由) 组件。
+// 可以从其他文件 import 进来
+import Foo from "./views/Foo.vue";
+import Bar from "./views/Bar.vue";
+
+// 2. 定义路由
+// 每个路由应该映射一个组件。 其中"component" 可以是
+// 通过 Vue.extend() 创建的组件构造器，
+// 或者，只是一个组件配置对象。
+// 我们晚点再讨论嵌套路由。
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar }
+]
+
+// 3. 创建 router 实例，然后传 `routes` 配置
+// 你还可以传别的配置参数, 不过先这么简单着吧。
+const router = new VueRouter({
+  routes // (缩写) 相当于 routes: routes
+})
+
+// 4. 创建和挂载根实例。
+// 记得要通过 router 配置参数注入路由，
+// 从而让整个应用都有路由功能
+const app = new Vue({
+  router
+}).$mount('#app')
+```
 
 
 
+路由是路径和组件之间的映射，所以在上面的代码中，路径`/foo`对应的是`Foo`组件，路径`/bar`对应的是`Bar`组件
+
+#### 路由的使用
+
+首先在App.vue中，我们使用`<router-link>`组件来导航
+
+```vue
+<template>
+  <div id="app">
+    <h1>Hello App!</h1>
+    <p>
+      <!-- 使用 router-link 组件来导航. -->
+      <!-- 通过传入 `to` 属性指定链接. -->
+      <!-- <router-link> 默认会被渲染成一个 `<a>` 标签 -->
+      <router-link to="/foo">Go to Foo</router-link>
+      <router-link to="/bar">Go to Bar</router-link>
+    </p>
+    <!-- 路由出口 -->
+    <!-- 路由匹配到的组件将渲染在这里 -->
+    <!-- App.vue 中的 <router-view></router-view> 是路由的最高级出口 -->
+    <router-view></router-view>
+  </div>
+</template>
+```
+
+页面展示效果
+
+![](https://document.youkeda.com/P3-5-Vue/6/16.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+* 导航标签`<router-link>`标签有一个to属性，这个属性指定路径（链接），根据我们配置的路由，路径`/foo`对应的组件是Foo.vue组件
+* ”插槽“标签`<router-view>`标签相当于一个插槽，它所在的位置将渲染路由匹配到的组件
+
+比如，我们点击"Go to Foo"这个导航的时候，`<router-view>`处将展示Foo.vue组件
+
+><router-link>组件支持用户在具有路由功能的应用中（点击）导航。默认渲染成带有正确链接的<a>标签
+>
+>注意：Foo.vue和Bar.vue文件在`src/views`文件夹里面
+
+最好把router的配置从main.js中抽出来，放到src/router/index.js中。
+
+### 添加路由
+
+我们知道路由是路径和组件间的映射，而路径所对应的组件将在`<router-view>`标签处渲染
+
+现在我们给工程添加一些路由，即在routes中添加一些路径和组件的映射
+
+```js
+// 1. 将要用到的组件从其他文件 import 进来
+import Foo from './views/Foo.vue';
+import Bar from './views/Bar.vue';
+import User from './views/User.vue';
+
+// 2. 定义路由，每个路由应该映射一个组件
+// 添加路径即在 routes 数组中增加新的成员
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar', component: Bar },
+  // 新增一项
+  { path: '/user', component: User }
+];
+
+// 3. 创建 Router 实例，然后传 `routes` 配置
+const router = new VueRouter({
+  routes
+});
+```
+
+#### 导入组件的写法
+
+导入组件不但可以像上面那样用import的方法导入，还可以像下面这样直接在routes中写：
+
+```js
+const routes = [
+  { path: '/foo', component: () => import('./views/Foo.vue') },
+  { path: '/bar', component: () => import('./views/Bar.vue') },
+  { path: '/user', component: () => import('./views/User.vue') }
+];
+```
+
+#### 命名路由
+
+有时候，通过一个名称来标识一个路由显得更方便一些，特别是在链接一个路由，或者执行一些跳转的时候，我们可以在创建Router实例的时候，在routes配置中给某个路由设置名称
+
+```js
+const routes=[
+    {path:'/foo',
+    name:'fooName',
+    component:()=>import('./views/Foo.vue')
+    }
+];
+```
+
+通过命名跳转：
+
+```vue
+<router-link :to="{name:'fooName'}">Go to Foo</router-link>
+<!-- to的值是一个对象而不是字符串，所以要在to前面加上：-->
+```
+
+### 路由布局管理
+
+在实际开发中，工程比较复杂，应用界面通常由多层嵌套的组件组合而成，相应的，路由也会按照某种结构对应嵌套的各层组件。
 
 
 
+例如用户相册里面有头部、功能区、功能区有相册列表和新建相册两个功能，切换路径时，"banner"没变，只有功能区的组件发生了切换：
+
+![](https://document.youkeda.com/P3-5-Vue/6/2.gif)
+
+路径、组件的嵌套结构：
+
+```
+/album/list                           /album/add
++------------------+                  +-----------------+
+| Album            |                  | Album           |
+| +--------------+ |                  | +-------------+ |
+| | List         | |  +------------>  | | Add         | |
+| |              | |                  | |             | |
+| +--------------+ |                  | +-------------+ |
++------------------+                  +-----------------+
+```
+
+#### 在组件中配合路由使用`<router-view>`
+
+App.vue组件：
+
+```vue
+<template>
+	<div id="app">
+        <h1>
+            Hello App!
+    </h1>
+        <P>
+            <router-link to="/album/list">Go to Album List</router-link>
+            <router-link to"/album/add">Go to Album Add</router-link>
+    </P>
+        <!--路由匹配到的组件将渲染到这里-->
+        <!--在本例中为Album.vue组件-->
+        <router-view></router-view>
+    </div>
+</template>
+```
+
+Album.vue组件
+
+```vue
+<template>
+	<div id="app">
+        <div class="banner">bannner
+            
+    </div>
+        <!--路由匹配到的组件将渲染到这里-->
+        <!--在本例中为List.vue组件或者Add.vue组件-->
+    </div>
+</template>
+```
+
+图示如下
+
+![](https://document.youkeda.com/P3-5-Vue/6/5.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+#### 定义嵌套路由
+
+路由的嵌套关系和组件嵌套关系一致
+
+```js
+//导入Album,List,Add三个组件
+const routes=[
+    {
+    	path:'/album',
+    	component:Album,
+    	//children属性可以用来配置下一级路由（子路由）
+		children:[
+            {path:'list',component:List},
+            {path:'add',component:Add}
+        ]    
+	}
+];
+```
+
+App.vue中的`<router-view>`对应`routes`里的第一层路由，
+
+```js
+{path:'/album',component:Album}
+```
+
+Album.vue组件中的`<router-view>`对应routes里的第二层路由
+
+````js
+{ path: 'list', component: List },
+{ path: 'add', component: Add }
+````
 
 
 
+**根路径`/`**
 
 
 
+特别注意，在上例中如果希望用路径"/album/list"对应在Album.vue中渲染出相册列表，那么子路由中path的写法有两种：
+
+```js
+path:'list'
+path:'/album/list'
+```
+
+但是`path:'list'`这样的写法是不对的，因为以/开头的嵌套路径会被当做根路径，那么List.vue这个组件会直接渲染到App.vue的`<router-view>`处
+
+当路径从"/album/list"切换到"/album/add"时，`<router-view>处渲染的组件也从List.vue切换成了Add.vue。`
 
 
+
+**空的子路由**
+
+
+
+基于上面的路由配置，如果在路径为"/album"时仍然想在功能区渲染些什么，那么可以给”/album“添加一个空路由
+
+```js
+// 0. 导入 Album、List、Add、Empty 三个组件
+const routes = [
+  {
+    path: '/album',
+    component: Album,
+    // children 属性可以用来配置下一级路由（子路由）
+    children: [
+      // 空的子路由
+      { path: '', component: Empty },
+      { path: 'list', component: List },
+      { path: 'add', component: Add }
+    ]
+  }
+];
+```
+
+![](https://document.youkeda.com/P3-5-Vue/6/3.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+
+
+### 动态路由
+
+之前我们遇到的都是一个路径对应一个组件的情况，但有时我们会遇到多个路径对应一个组件的情况。比如个人中心对应一个User组件，登录个人中心时，由于大家的id各不相同，所以路径也会不相同，像`/user/123` `/user/456`等情况，但其实页面也会使用同一个User组件来渲染
+
+像这种多个路径都映射到一个组件的这种情况就属于动态路由
+
+```js
+import User from "./views/User.vue";
+
+const routes = [
+  // id 就是路径参数
+  { path: '/user/:id', component: User }
+]
+```
+
+id为路径参数，一个路径参数前面需要用冒号标记，当url匹配到路由的一个路径的时候，参数值会被设置到`this.$route.params`里，可以在组件内读取到。
+
+比如`/user/456`匹配的就是`/user/:id`,那么这个用户的id就是456，`this.$route.params.id`的值就是456.
+
+现在我们在User的模板，输出当前用户的id
+
+```vue
+<template>
+	<div>
+        user Id:{{$route.params.id}}
+    </div>
+</template>
+```
+
+#### 捕获404页面
+
+当用户输入的url不属于我们注册的任何一个路由时，我们常需要将页面用404 NotFound组件渲染，这里我们可以使用通配符（*）来匹配任意路径
+
+```js
+import NotFound form "./views/NotFound.vue";
+
+const routes=[
+    {
+        //会匹配所有路径
+        path;'*',
+        compoent:NotFound
+    }
+]
+```
+
+当使用通配符路由时，请确保含有通配符的路由应该放到最后，因为路由的匹配通常时根据注册的顺序匹配的，如果`path:'*'`路由放在最前面，那么所有的页面都会因为先匹配到统配符路由而由NotFound组件渲染
+
+
+
+如何读取匹配到的路径值
+
+
+
+当使用一个通配符时，`$route.params`内会自动添加一个名为`pathMatch`的参数。它包含了URL通过通配符被匹配的部分，比如用上面的路由`{path:'*'}`匹配url`http://localhost:8081/non-existing/file`:
+
+```vue
+this.$route.params.pathMatch // 'non-existing/file'
+```
 
 
 
