@@ -2351,6 +2351,530 @@ this.$route.params.pathMatch // 'non-existing/file'
 
 
 
+### 页面跳转
+
+车辆使用`<router-link>` 创建 a 标签来定义导航链接，我们还可以借助 Router 的实例方法，通过编写代码来实现：
+
+| 声明式                  | 编程式           |
+| ----------------------- | ---------------- |
+| <router-link :to="..."> | router.push(...) |
+
+> 注意，因为在 Vue 实例内部，我们可以通过 $router 访问 Router 的实例。所以 Router 的实例方法 push 可以用 `this.$router.push(...)` 调用。
+
+#### 用 `router.push` 进行页面跳转及参数传递
+
+#### 一、router.push 的参数为字符串路径
+
+router.push 方法的参数可以是一个字符串路径：
+
+```js
+router.push('user')
+router.push('/user')
+```
+
+下面详细说明上面两种写法的不同，主要是跳转后 url 的变化不同：
+
+| 原 url                            | localhost:8080      | localhost:8080/home      |
+| --------------------------------- | ------------------- | ------------------------ |
+| router.push('user') 跳转后的 url  | localhost:8080/user | localhost:8080/home/user |
+| router.push('/user') 跳转后的 url | localhost:8080/user | localhost:8080/user      |
+
+因为 `/` 意味着匹配根路由，所以 `'/user'` 这样的写法不管原路径 `localhost:8080/??` 中的 `??` 是什么，跳转后 url 都会变为 `localhost:8080/user`。
+
+#### 二、router.push 的参数为描述地址的对象
+
+router.push 方法的参数可以是一个描述地址的对象：
+
+```js
+// 对象
+// 这种写法和字符串类型的参数一样
+router.push({ path: 'home' })
+
+// 命名的路由
+router.push({ name: 'user', params: { userId: '123' }})
+
+// 带查询参数，变成 /register?plan=private
+router.push({ path: 'register', query: { plan: 'private' }})
+```
+
+只提供 `path` 值的参数和字符串类型的参数是一样的。这里就不再说了。我们主要看一下后两种写法。
+
+1. `{ name: 'user', params: { userId: '123' }}`
+
+- 对应的**命名路由**为： `{ path:'user/:userId', name:'user' }`；
+
+- 跳转后 url：`localhost:8080/user/123`；
+
+- 取参数：`$route.params.userId`；
+
+  
+
+1. `{ path: 'register', query: { plan: 'private' }}`
+
+- 对应的路由为： `{ path:'register' }`；
+- 跳转后 url：`localhost:8080/register?plan=private`；
+- 取参数：`$route.query.plan`；
+
+小结一下参数传递的对应规则：
+
+- name 对应 params，路径形式：user/123；
+- path 对应 query，路径形式：user?id=123；
+
+如果使用 path 进行页面跳转的时候，写 params 进行传参会被忽略：
+
+```js
+// params 会被忽
+router.push({ path: 'user', params: { userId: '123' }})
+```
+
+可以换成下面的写法：
+
+```js
+router.push({ path: 'user/123'})
+```
+
+同样的规则也适用于 `router-link` 组件的 `to` 属性。
+
+#### 页面跳转后如何获取参数
+
+之前我们说可以通过 $route 访问当前路由，现在我们看看 $route 到底能给我们提供些什么信息。
+
+现在我们访问本地启动的工程的一个地址 `http://localhost:8080/user/123?name=userName#abc`，对应的 $route 如下：
+
+```js
+// $route
+{
+  // 路由名称
+  name: "user",
+  meta: {},
+  // 路由path
+  path: "/user/123",
+  // 网页位置指定标识符
+  hash: "#abc",
+  // window.location.search
+  query: {name: "userName"},
+  // 路径参数 user/:userId
+  params: {userId: "123"},
+  fullPath: "/user/123?name=userName#abc"
+}
+```
+
+页面跳转后获取参数可以很方便的通过 `$route.query`、`$route.params`、`$route.hash` 获取。
+
+点击跳转页面，并且新页面根据用户点击后提供的信息加载对应的内容
+
+```js
+this.$router.push(`coursedetail/${this.course.id}`)
+```
+
+跳转的路径就是`/coursedetail/123`
+
+
+
+### 重定向和别名
+
+| 首页         | 全部课程页        | 课程详情页                     |
+| ------------ | ----------------- | ------------------------------ |
+| /layout/home | /layout/courseall | /layout/coursedetail/:courseId |
+
+可以看到这三个路径中都有 `layout`,但实际我们遇到的情况是，官网首页一般是`https://www.xxx.com/`。这时候我们就可以使用路由功能中的别名和重定向把 `/layout/home` 变成 `/`。
+
+首先我们使用别名。
+
+
+
+别名，顾名思义就是两个名字指向同一个路由：
+
+```js
+const routes:[
+    //定义alias属性
+    {path:'/a',alias:'/b',component:A}
+]
+```
+
+当访问`/a`时，渲染的是A；当访问`/b`时，就像访问`/a`一样，渲染的也是A
+
+我们的目的时把`/layoout/home`变成`/`所以要把layout去掉
+
+```js
+const routes:[
+    {
+        path:'layout',
+        //别名定为/
+        alias:'/',
+        component:()=>import('@.pages/nest/Layout.vue'),
+        children:[
+        {path:'home',component:Home},
+    	{path:'courseall',component:CourseAll},
+    	{path:'coursedetail/:courseId',component:CourseDetail}
+        ]
+    }
+];
+```
+
+这时候`/layout/home`变成了`/home`:
+
+![](https://document.youkeda.com/P3-5-Vue/6/11.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+
+
+接下来我们要用重定向把`/home`变成`/`
+
+先了解重定向的意思
+
+若路由`/a` 重定向到 `/b`，即访问 `/a` 时， url 会自动跳到 `/b`，然后匹配路由 `/b`：
+
+```js
+const routes: [
+  // 定义 redirect 属性，将 /a 重定向到 /b
+  { path: '/a', redirect: '/b' }
+]
+```
+
+现在我们希望 `/` 重定向到 `/home`，这样访问 `/` 时会自动跳到 `/home`：
+
+```js
+const routes: [
+  {
+    path: '/layout',
+    alias: '/',
+    // 重定向到 /home
+    redirect: '/home',
+    component: ()=> import('@/pages/nest/Layout.vue'),
+    children: [
+      { path: 'home', component: Home },
+      { path: 'courseall', component: CourseAll },
+      { path: 'coursedetail/:courseId', component: CourseDetail }
+    ]
+  }
+];
+```
+
+现在的路由是这样的：
+
+| 首页         | 全部课程页        | 课程详情页                     |
+| ------------ | ----------------- | ------------------------------ |
+| /layout/home | /layout/courseall | /layout/coursedetail/:courseId |
+| /            | /courseall        | /coursedetail/:courseId        |
+
+
+
+### 监听路由
+
+有时候我们需要对路由变化进行监听
+
+![](https://document.youkeda.com/P3-5-Vue/6/13.gif)
+
+当页面头部的标签切换的时候，路径也会发生变化，我们需要监听路由变化来改变标签的样式，或者在页面中加载对应的内容。
+
+#### 监听路由`$route`的变化
+
+监听路由变化我们需要用到两个知识：vue中的watch和`$route`。
+
+watch即之前讲过的数据变化监听，`$route`即当前路由。
+
+路由监听写法如下：
+
+```js
+watch:{
+	$route(to,from){
+        console.log(to,from);
+    }
+}
+
+//或者
+watch:{
+    $route:{
+        handler(to,from){
+            console.log(to,from);
+        },
+            //深度观察监听
+            deep:true
+    }
+},
+```
+
+to是变化后的路由，from是变化前的路由，一般我们用第一种写法就可以了。
+
+#### 监听路由的使用
+
+现在我们来实现上面gif的例子，根据路径参数定位点击的标签：
+
+基础样式
+
+tab的样式分为两种，被点击的和未被点击的：
+
+![](https://document.youkeda.com/P3-5-Vue/6/14.jpg?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+被点击的tab会多一个类名active
+
+
+
+定义tab点击事件
+
+```vue
+<script>
+	export default{
+        methods:{
+            //点击tab时会执行changeTab方法
+            changeTab(type){
+                //使用Router实例方法改变路径参数
+                this.$router.push({query:{type:type}});
+            }
+        }
+    };
+</script>    
+```
+
+监听路由变化，更新tab样式
+
+```vue
+<script>
+	export default{
+        watch:{
+            $route(to,from){
+                //路由变化了就执行更新样式的方法
+                this.updateTab();
+                console.log(to,from);
+            }
+        },
+        methods:{
+            changeTab(type){
+                this.$router.push({query:{type:type}});
+            },
+            updateTab(){
+                this.tabList.map(menu => {
+                    menu.active = menu.type === this.$route.query.type;
+                });
+            }
+        }
+    };
+</script>
+```
+
+处理特殊情况
+
+如果页面路径一开始没有路径参数type，那我们默认选择第一个tab，如果页面路径一开始就有路径参数，那么需要马上更新tab样式：
+
+```js
+<script>
+export default {
+  methods: {
+    // ...
+    updateTab() {
+      if (!this.$route.query.type) {
+        return;
+      }
+      this.tabList.map(tab => {
+        tab.active = tab.type === this.$route.query.type;
+      })
+    }
+  }
+};
+</script>
+```
+
+
+
+
+
+### 网络请求async与await
+
+本章学习如何在vue中请求远程数据
+
+在JavaScript中我们曾学过用`fetch`请求数据，比如一个显示公司信息的API
+
+`https://www.fastmock.site/mock/b73a1b9229212a9a3749e046b1e70285/f4/f4-11-1-1`
+
+把这个URL贴到浏览器，可以看到查询返回结果为：
+
+![](https://style.youkeda.com/img/course/f4/11/1.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+文字内容如下
+
+```json
+{
+    "company":"优课达",
+    "slogan":"学的比别人好一点"
+}
+```
+
+用`fetch`请求数据的代码如下：
+
+```js
+fetch(
+    'https://www.fastmock.site/mock/b73a1b9229212a9a3749e046b1e70285/f4/f4-11-1-1'
+)
+	.then(fuction(reponse){
+          return response.json();
+          })
+          .then(fuction(myJson){
+                console.log(myJson);
+                });
+```
+
+由于`fetch` 返回的是一个 `Promise` 对象，所以我们在请求数据的时候用了 `then` 采用平铺式回调的方式，允许我们在数据返回之后再对数据进行 `response.json()` 处理。
+
+这里就有一个问题，因为 `Promise` 对象的一个特点是无等待，所以想对返回的数据进行操作，就必须在 `then` 里处理。假设一个业务，分多个步骤完成，每个步骤都是异步的，而且依赖于上一个步骤的结果。那么 `then` 链就会很长
+
+现在我们来学习异步编程终级解决方案 —— `async` 和 `await`。
+
+#### 异步async
+
+`async` 是“异步”的简写，用于申明一个异步 `function`，而这个 `async` 函数返回的是一个 `Promise` 对象。
+
+```js
+async fuction asyncFn(){
+    return {
+        "company":"优课达",
+        "slogan":"学的比别人好一点"
+    };
+}
+
+const result = asyncFn();
+console.log(result);
+```
+
+既然`async` 返回的是一个 `Promise` 对象，那和普通的 `fetch` 方法有什么区别？着关键点就在于 `await` 关键字。
+
+#### 等待异步 await
+
+`await`用于等待一个异步方法执行的完成，它会阻塞后面的代码，等着Promise对象resolve，然后得到resolve的值，作为await表达式的运算结果：
+
+```js
+async fuction getAsyncFn(){
+    const result = await asyncFn();
+    console.log(result);
+}
+getAsyncFn();
+```
+
+要注意，`await`只能出现在`async`函数中，如果用在普通函数里就会报错，所以上面我们又定义了一个`async`函数`getAsyncFn`。
+
+`getAsyncFn`。
+
+> 如果大家想要了解更多关于 `Promise` 对象的知识，可以点击查看这个[文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+
+#### 多个请求并发执行 Promise.all
+
+如果要完成多个请求并发执行，可以使用 `Promise.all`
+
+```js
+async function asyncFn1() {
+  return "优课达";
+}
+
+async function asyncFn2() {
+  return "学的比别人好一点";
+}
+
+async function getAsyncFn() {
+  const result = await Promise.all([asyncFn1(), asyncFn2()]);
+  console.log(result);
+}
+
+getAsyncFn();
+```
+
+
+
+#### 在vue中运用async和await请求数据
+
+之前课程数据是直接写在data里面的，现在我们将运用async和await请求数据，完成后页面中的课程信息均为动态获取的：
+
+![](https://document.youkeda.com/P3-5-Vue/6/18.gif)
+
+
+
+已知我们mock的数据返回格式如下，其中的data是我们实际需要的数据：
+
+```json
+{
+    data:{...},
+          isSuccess:true
+}
+```
+
+在全部课程页CourseAll.vue组件里获取所有课程
+
+```vue
+<script>
+export default {
+  data: function() {
+    return {
+      courseList: []
+    };
+  },
+  async mounted() {
+    // 在生命周期 mounted 中调用获取课程信息的方法
+    await this.queryAllCourse();
+  },
+  methods: {
+    // 在 methods 对象中定义一个 async 异步函数
+    async queryAllCourse() {
+      // 在 fetch 中传入接口地址
+      const res = await fetch('https://www.fastmock.site/mock/2c5613db3f13a5c02f552c9bb7e6620b/f5/api/queryallcourse');
+      // 将文本体解析为 JSON 格式的promise对象
+      const myJson = await res.json();
+      // 获取返回数据中的 data 赋值给 courseList
+      this.courseList = myJson.data;
+    }
+  }
+}
+</script>
+```
+
+#### 给api传参数
+
+在课程详细页面CourseDetail.vue组件，我们需要根据课程id获取课程信息，这时需要给获取课程信息的api传课程id：
+
+```vue
+<script>
+export default {
+  data: function() {
+    return {
+      course: []
+    };
+  },
+  async mounted() {
+    await this.getCourse();
+  },
+  methods: {
+    async getCourse() {
+      // 从路径中获取课程 id
+      const courseId = this.$route.params.courseId
+      // 在接口地址后传入参数 id
+      const res = await fetch('https://www.fastmock.site/mock/2c5613db3f13a5c02f552c9bb7e6620b/f5/api/getcourse?id=' + courseId);
+      const myJson = await res.json();
+      this.course = myJson.data;
+    }
+  }
+}
+</script>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
