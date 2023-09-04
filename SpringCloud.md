@@ -981,6 +981,681 @@ public List<User> testFallback(List<Long> ids, Throwable e) {
 
 当单台机器上所有入口流量的QPS达到阈值即触发系统保护。**同样地**，企业中需要根据实际经验确定每项指标的阈值。
 
+## Nacos
+
+### 配置的重要性
+
+`resources/application.properties` 就是标准的配置文件，文件名是固定的，不能改变。SpringBoot系统在启动时，会优先加载文件读取其内容，然后程序中就可以使用到这些值了。
+
+> 学习 Spring 要注意一个概念：“约定大于配置”。resources 是系统资源文件（Java 代码中可能用到的任何文件）存放的标准目录，application.properties必须放在resources中，这些都是约定。
+
+配置与程序代码分离，优点大家已经有所体会了。例如：如果没有配置功能，那么 SpringBootAlibaba 的开发工程师只能在代码中写死 Nacos 的地址，其它使用 SpringBootAlibaba 的工程师同时也必须使用开发工程师指定的 Nacos ，无法使用个性化的 Nacos 。
+
+我们自己也应该善用配置功能，让代码变的更优雅。例如用户系统时，用户服务的注册方法，会判断用户名和密码参数是否合法：
+
+```java
+if (StringUtils.isEmpty(userName)) {
+  result.setCode("600");
+  result.setMessage("用户名不能为空");
+  return result;
+}
+if (StringUtils.isEmpty(pwd)) {
+  result.setCode("601");
+  result.setMessage("密码不能为空");
+  return result;
+}
+
+UserDO userDO = userDAO.findByUserName(userName);
+if (userDO != null) {
+  result.setCode("602");
+  result.setMessage("用户名已经存在");
+  return result;
+}
+```
+
+这种代码对于初学者来说问题不大，但是对于资深开发工程师来说，就不够优雅，扩展性不够好。
+
+例如，提示语“用户名不能为空”跟具体的业务场景非常相关，在企业中，项目经理可能喜欢“用户名不能为空哦！”的提示语，然后项目总监觉得“亲，请输入用户名哦！”提示语更亲切，那么代码就会不断的更改，代码一旦改动，就要重新测试、编译发布。繁琐而效率低下。
+
+所以，“与具体业务息息相关的”内容，应该使用配置，而不是在代码中写死。初级开发工程师的重点在于实现功能，资深开发工程师的重点在于提升设计能力。
+
+配置举例如下：
+
+```java
+import org.springframework.beans.factory.annotation.Value;
+
+@DubboService
+public class UserServiceImpl implements UserService {
+
+    @Value("${code.600.message}")
+    private String message600;
+
+    @Override
+    public Result<User> register(String userName, String pwd) {
+        Result<User> result = new Result<>();
+
+        if (StringUtils.isEmpty(userName)) {
+            result.setCode("600");
+            result.setMessage(message600);
+            return result;
+        }
+    }
+}
+```
+
+`application.properties` 里增加一个配置项：
+
+```properties
+code.600.message = 用户名不能为空
+```
+
+做到配置与代码分离。提示语如何修改，Java 代码都不需要修改。
+
+### Nacos动态配置
+
+把用户注册错误提示语改为配置方式，仍然不够好，因为修改提示语言仍需要重新测试、重新发布。
+
+如果有一种方法，修改了配置（类似于提示语），但不需要重新测试，发布，修改后立即生效，就比较完美了。
+
+这就是动态配置的功能。
+
+Nacos除了作为注册中心以外，还可以作为配置中心，提供动态配置的功能。
+
+**1、依赖**
+
+Nacos动态配置所需要的依赖，实际上前面已经添加过了：
+
+```xml
+<dependency>
+  <groupId>com.alibaba.cloud</groupId>
+  <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+</dependency>
+```
+
+**2、新的配置文件**
+
+要使用Nacos动态配置，就需要指定Nacos动态配置服务器的地址。
+
+但是，动态配置的内容，优先级必须是最高的，甚至于数据库、redis的地址等配置，都可以使用动态配置。那么就要保证系统启动时的第一优先级，是要先读取到动态配置的内容，然后再链接数据库。
+
+所以，这里就有不同了：在`application/src/main/resources/` 目录下，新建一个 `bootstrap.properties` 文件。
+
+> 不是原来的 application.properties 文件哦
+
+与 application.properties 文件的作用相同，都是写配置信息的，不同的是，bootstrap.properties 的优先级最高，系统需要先从 bootstrap.properties 文件中读取 Nacos 动态配置服务器的地址。
+
+### bootstrap.properties 基本概念和原理
+
+Spring是有上下文（Context）一说的，也叫 Application Context （应用上下文）。主要作用是为创建Spring创建和管理 Bean 提供支持，特别是管理各种资源（如URL和文件等等）。Application Context 又是有父子关系的，所以必须要理解 ApplicationContext 是什么。
+
+SpringCloud启动时，会先创建一个Bootstrap Context，然后创建一个Application Context。Bootstrap Context是Application Context的父上下文，Bootstrap负责从外部源加载配置并解析，这两个上下文共用一个从外部获取的Environment。Bootstrap配置具有较高的优先级，不会被本地配置覆盖。Bootstrap典型的应用场景是使用SpringConfig，这个时候你需要把配置信息配在bootstrap里面。Bootstrap属于引导配置，Application属于应用配置。
+
+> 有兴趣可以自己找资料研究一下 Spring 的基本原理，这里就不详细讲了
+
+**3、配置内容**
+
+bootstrap.properties 文件中，写入“应用名称”和“Nacos动态配置服务器地址”：
+
+```properties
+#application name
+spring.application.name = feidian-user
+
+#Nacos Server ip and port
+spring.cloud.nacos.config.server-addr = nacos.dev.youkeda.com:8848
+```
+
+根据上面概念的介绍，Bootstrap Context 是 Application Context 的父上下文，所以 application.properties 文件中的 `spring.application.name` 配置项可以删除掉。
+
+**4、代码改造**
+
+修改程序代码，把配置项注入到变量中：
+
+```java
+@Value("${code.600.message}")
+private String message600;
+```
+
+此时可以从 Nacos 的配置管理中读取配置项的值。但仅仅是项目启动的时候读取一次。如果要在配置管理中修改值后立即生效的话，需要给实现类加一个注解：
+
+```java
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+@DubboService
+@RefreshScope
+public class UserServiceImpl implements UserService
+```
+
+新注解`@RefreshScope`的作用是这个类中的属性对 Nacos 配置进行监听，一旦 Nacos 重新发布新的属性值则替换原来的值，实现刷新。
+
+**5、管理配置项**
+
+既然是 **动态** 配置，那么配置项肯定不是写在项目代码中的，而是写在 Nacos 中的。项目从 Nacos 读取配置项的值，注入到变量中。
+
+[点此打开Nacos](http://nacos.dev.youkeda.com:8848/nacos/index.html)，登录后点击左侧的 配置管理 -> 配置列表 菜单，可以看见配置项列表。这是公用的，所以能看到其它同学的配置。
+
+![img](https://style.youkeda.com/img/ham/course/j9/j9-6-3-1.png?x-oss-process=image/resize,w_1200/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_1,y_1)
+
+点击右上角的加号按钮，添加自己的配置：
+
+![img](https://style.youkeda.com/img/ham/course/j9/j9-6-3-2.png?x-oss-process=image/resize,w_1200/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_ne,x_1,y_90)
+
+➣ **Data ID** 是非常重要的，一定不能填错。值的格式是 `应用名.properties` 。
+
+***注意：*** 应用名要被替换的，就是配置项 spring.application.name 的值；后缀（.properties）是固定的。
+
+例如上面配置的应用名称：
+
+```properties
+spring.application.name = feidian-user
+```
+
+那么 **Data ID** 输入框中就应该输入 `feidian-user.properties`，不能填错了，否则会读取不到动态配置的内容。
+
+➣ **配置格式** 选择最后一个 `properties`
+
+➣ **配置内容** 就按具体需求填写啦
+
+填写完毕以后点击右下角的“发布”按钮。
+
+**5、启动应用**
+
+启动应用，测试配置项是否正常读取并注入。
+
+> 自己思考一下，怎么自测呢？
+
+**特别提醒**
+
+由于 Nacos 是公用的，没有做特别的权限控制，所以注意不要编辑和删除其它同学的数据。
+
+最好自己搭建 Nacos 。
+
+## Spring、SpringMVC、SpringBoot
+
+### Spring
+
+最初的Spring是一个开源容器框架，可以接管web层、业务层、dao层、持久层的组件，并且可以配置各种bean，并维护bean与bean之间的关系。其核心就是控制反转（IOC），和面向切面（AOP），简单的说就是一个分层的轻量级开源框架。
+
+#### 控制反转
+
+IOC（Inversion of Control）的核心原理是让对象A获得依赖对象B的过程，由主动行为变成了被动行为，即把创建对象交给了IoC容器处理，控制权颠倒过来了。那么IoC容器把对象B放入对象A的过程，叫做**依赖注入**，英文Dependency Injection，简称DI。控制反转和依赖注入是同一件事情从不同角度的描述而已，目标都是一致的：实现对象之间的解耦
+
+Spring IOC经常用到的设计模式是工厂模式。
+
+#### 面向切面
+
+AOP（Aspect Orient Programming），直译过来就是面向切面编程。AOP是一种编程思想，是面向对象编程（OOP）的一种补充。面向对象编程将程序抽象成各个层次的对象，而面向切面编程是将程序抽象成各个切面。
+
+AOP的本质是保证开发者不修改源代码的前提下，由AOP框架修改业务组件的多个方法的源代码，为系统中的业务组件添加某种通用功能。其实是代理模式的典型应用。
+
+按照AOP框架修改源代码的时机，可以将其分为两类：
+
+* 静态AOP实现，AOP框架在编译阶段对程序源代码进行修改，生成了静态的AOP代理类（生成的*.class文件已经被改掉了，需要使用特定的编译器），比如AspectJ。
+* 动态AOP实现，AOP框架在运行阶段对动态生成代理对象（在内存中以JDK动态代理，或CGlib动态地生成AOP代理类），如SpringAOP
+
+### SpringMVC
+
+SpringMVC属于SpringFrameWork的后续产品，已经融合在Spring Web Flow里面。SpringMVC是一种web层的mvc框架，用于替代servlet处理、响应请求，获取表单参数，扁担校验等。
+
+SpringMVC是一个MVC的开源框架。
+
+SpringMVC = struts2+spring，SpringMVC就相当于是Struts2加上Spring的整合。
+
+### SpringBoot
+
+SpringBoot是一个微服务框架，延续了Spring框架的核心思想IOC和AOP，简化了应用的开发和部署。SpringBoot是为了简化Spring应用的创建、运行、调试、部署等而出现的，使用它可以做到专注于Spring应用的开发，而无需过多关注XML的配置。提供了一堆依赖打包，并已经按照使用习惯解决了依赖问题：习惯大于约定，约定大于配置。
+
+## 什么是starter
+
+前面经常引用到`spring-boot-starter-data-mongodb`、`spring-boot-starter-thymeleaf`、`mybatis-spring-boot-starter` 等依赖库，这些库的命名有个共同点，都带有 “starter” 。
+
+### 什么是 starter
+
+Springboot 之所以简化了应用的开发和部署，起到重要作用的就是 starter 。
+
+starter 也叫启动器，是一种非常重要的机制，能够抛弃以前繁杂的配置，将其统一集成进 starter。应用者只需要在 Maven 中引入 starter 依赖，SpringBoot 就能自动扫描到要加载的信息并启动相应的默认配置。starter 让我们摆脱了各种依赖库的处理，需要配置各种信息的困扰。
+
+SpringBoot提供了针对日常企业应用研发各种场景的 spring-boot-starter 依赖模块，但也允许自定义 starter 。
+
+### 优点
+
+企业的日常开发工作中，经常会有一些独立于业务之外的配置模块，我们经常将其放到一个特定的包下，然后如果另一个工程需要复用这块功能的时候，需要将代码硬拷贝到另一个工程，重新集成一遍，麻烦至极。如果我们将这些可独立于业务代码之外的功配置模块封装成一个个 starter，复用的时候只需要将其在 pom 中引用依赖即可，SpringBoot 为我们完成自动装配，简直不要太爽。
+
+### 案例：spring-cloud-starter-alibaba-nacos-discovery
+
+这是我们已经用过的，其 pom.xml 的内容是：
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-alibaba-starters</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    <name>Spring Cloud Starter Alibaba Nacos Discovery</name>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-commons</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.spring</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-context</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-client</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>2.0.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>2.0.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+内容非常长，如果没有 starter ，那么我们的用户系统等项目，就要写这么长的依赖，非常不友好。
+
+有兴趣、有条件的同学，可以仔细看一下原始文件：[点此查看pom.xml](https://github.com/alibaba/spring-cloud-alibaba/blob/master/spring-cloud-alibaba-starters/spring-cloud-starter-alibaba-nacos-discovery/pom.xml)
+
+## 用户模块starter
+
+starter项目相当于一个模块，跟应用项目的明显区别是，不需要带有`main()` 方法的 `Application` 启动类，starter 应该是被其它应用依赖的。
+
+所以有几点需要明确：
+
+#### 1、本地调用
+
+starter 项目不再是分布式项目了。例如，用户 starter 模块被集成到“评论”应用中，那么评论服务查询用户就是本地调用了，而不是远程调用。
+
+#### 2、无代码
+
+Spring 通常来说，只用于做依赖导入，也就是没有任何代码。
+
+例如我们一直用的 `spring-cloud-starter-alibaba-nacos-discovery` 就没有 java 代码，只是在 pom.xml 定义了其它功能模块包的版本号。
+
+但也不是绝对的，我们在当前学习阶段可以做一个带有代码的 starter 项目，到了企业中，还需要根据企业自身技术特点和习惯来确定细节。
+
+### 完成 starter 项目步骤
+
+starter 的总要功能是自动配置，所以第一步先创建配置项类
+
+### ☂ 一. 创建配置项类
+
+比如在用户项目中，我们要自动把注册时的三种错误的中文提示语，改为配置，而不是在 java 代码中写死，那么对应的配置项可以写在一个配置类中。
+
+```java
+package com.youkeda.comment.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "user.code")
+public class UserProperties {
+
+    private String message600;
+
+    private String message601;
+
+    private String message602;
+}
+```
+
+> 大家写代码自行补充 getter/setter 方便，这里举例子为了简洁就省略
+
+**注意：** 新建一个 `config` 包，用于放配置相关的类，比较好。
+
+`@ConfigurationProperties(prefix = "user.code")` 用于为配置项指定一个前缀，相同作用域的配置项有共同的前缀，比较方便阅读：
+
+```properties
+user.code.message600=用户名不能为空哦
+user.code.message601=密码不能为空哦
+user.code.message602=用户名已经存在，无法注册哦
+user.code.message600` 配置项会自动映射到属性 `message600
+```
+
+### ☂ 二. 核心代码：配置项控制类
+
+除了映射配置项到类，Spring 还提供了控制配置项是否生效的机制。
+
+```java
+package com.youkeda.comment.config;
+
+import com.youkeda.comment.service.UserService;
+import com.youkeda.comment.service.impl.UserServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+
+//标记为配置类
+@Configuration
+//启动配置属性
+@EnableConfigurationProperties(UserProperties.class)
+// 如果设置了 user.code.enabled=false 则配置不生效
+// 如果没有设置 user.code.enabled 则默认配置生效（matchIfMissing = true）
+@ConditionalOnProperty(prefix = "user.code", value = "enabled", matchIfMissing = true)
+public class UserConfig {
+
+    @Autowired
+    private UserProperties userProperties;
+
+    @Autowired
+    private UserService userService;
+
+    @PostConstruct
+    public void init() {
+        System.out.println("UserConfig init successful.");
+
+        if (userProperties != null) {
+            System.out.println("user.code.message600" + userProperties.getMessage600());
+            userService.setUserProperties(userProperties);
+        }
+    }
+}
+```
+
+类名可以自己根据需要修改。各个注解都是必须的，请阅读注释。
+
+控制配置项是否生效，核心就是 `@ConditionalOnProperty` 注解：
+
+▶ 由 *prefix* 和 *value* 这两个注解参数值组成 ***控制配置项*** 名称，默认只有值为 *false* 的时候才不生效。其它任意字符，例如 *user.code.enabled=123* 也会让配置生效。
+
+> *user.code.enabled* 就是 － 控制配置项
+
+如果要让某个特定值才表示配置生效的话，可以加一个 *havingValue* 参数，写法为：
+
+```java
+@ConditionalOnProperty(prefix = "user.code", value = "enabled", havingValue = "true", matchIfMissing = true)
+```
+
+则表示只有 `user.code.enabled=true` 才表示配置生效，其它任何值都不生效。
+
+> 你可以理解系统默认的黑名单是 false 值；而 havingValue 表示白名单。黑名单或白名单两种控制方式比较灵活。
+
+▶ `matchIfMissing` 用于判断是否填写了 ***控制配置项*** ，值为 *true* 表示即使不填写 *控制配置项* 配置也生效，值为 *false* 表示没有明确填写 *控制配置项* 配置则不生效。
+
+> 控制规则有点多，但也说明很灵活，如果觉得规则有点绕的话，多思考，在接下来的作业中多动手调试。
+
+#### ▶ 配置生不生效的区别是什么？
+
+配置生效的时候，系统会自动实例化 *userProperties* 并读取配置映射到属性中；`init()` 方法也会执行。
+
+反之，不生效，则 *userProperties* 不实例化，值为 null；`init()` 方法也不会执行。
+
+### ☂ 三. 服务接口和实现类提供配置方法
+
+接口 **增加** 一个 setter 方法：
+
+```java
+public interface UserService {
+  void setUserProperties(UserProperties userProperties);
+}
+```
+
+实现类 **增加** 配置项类依赖：
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+
+    private UserProperties userProperties;
+
+    public void setUserProperties(UserProperties userProperties) {
+        this.userProperties = userProperties;
+    }
+
+    @Override
+    public Result<User> register(String userName, String pwd) {
+        Result<User> result = new Result<>();
+
+        if (StringUtils.isEmpty(userName)) {
+            result.setCode("600");
+            result.setMessage(userProperties.getMessage600());
+            return result;
+        }
+        if (StringUtils.isEmpty(pwd)) {
+            result.setCode("601");
+            result.setMessage(userProperties.getMessage601());
+            return result;
+        }
+
+        UserDO userDO = userDAO.findByUserName(userName);
+        if (userDO != null) {
+            result.setCode("602");
+            result.setMessage(userProperties.getMessage602());
+            return result;
+        }
+    }
+}
+```
+
+> 注意，不需要 getter 方法
+
+`UserProperties userProperties` 属性没有加 `@Autowired` 注解让系统自动注入，就是为了在 `UserConfig` 中控制是否注入实例。
+
+### ▶ 自动注入配置项类
+
+实际上，如果 *实际需求* **不需要** 控制配置项是否生效，那么加上 `@Autowired` 也是可以的：
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserProperties userProperties;
+}
+```
+
+> 有 @Autowired 就不需要 setter 方法了
+
+系统会自动注入实例，只要不写 `user.code.enabled` 配置项就可以了。
+
+> 配合 @ConditionalOnProperty(prefix = "user.code", value = "enabled", matchIfMissing = true)
+
+`UserConfig` 类中可以省掉 `userService.setUserProperties(userProperties);` 代码。
+
+**但是注意：** 一旦写了 *user.code.enabled=false* ，系统就会出错，因为 `@Autowired` 但 `userProperties` 值为 null 导致抛异常。
+
+企业实际开发时，尽量不要用自动注入配置项类的写法，除非你对系统非常熟悉，否则会有坑。学习阶段可以尝试自动注入配置项类，以加深对 Spring 的理解。
+
+### ☂ 四. 系统配置文件
+
+starter 项目的 `resources` 目录下， 新建一个 `META-INF` （全大写字母）目录，然后此新目录下再建一个 `spring.factories` 文件（固定名称）。
+
+`META-INF/spring.factories` 中的内容很简单：
+
+```properties
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.youkeda.comment.config.UserConfig
+```
+
+只需要指定要配置项控制类即可。
+
+### ☂ 五. starter 项目发布
+
+先用 `cd` 命令进入项目目录，再输入安装命令：
+
+```shell
+mvn clean install
+```
+
+这个命令会把 starter 项目安装到本地电脑的 maven 仓库中。
+
+> 本地电脑的 maven 仓库一般在用户根目录下 ~/.m2/repository
+
+starter 项目自己是不能启动的，下节继续学习如何集成到评论项目中
+
+## 评论系统集成用户starter
+
+把“用户模块starter”集成到“评论系统”，主要是依赖和在nacos上增加配置。
+
+### 增加依赖
+
+依赖“用户模块starter”包：
+
+```xml
+ <dependency>
+            <groupId>com.youkeda.exercise</groupId>
+            <artifactId>user-spring-boot-starter</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+```
+
+在开发阶段用默认的`0.0.1-SNAPSHOT` 版本号。
+
+实际企业中，项目发布时，会改成固定的版本号，并且发布到企业的中央仓库。这个发布是比较复杂的 maven 命令，而且需要权限，大公司一般是由专人做发布的哦。本课程无法模拟企业的环境，所以不练习操作了，大家知道这个概念就行。
+
+### 增加应用配置
+
+在 Nacos 上为“评价系统”项目增加配置。这个过程前面章节学过了。只是提醒一下，“评价系统”的 **Data Id** 与“用户系统”不一样哦，注意格式。
+
+```properties
+user.code.enabled=true
+user.code.message600=用户名不能为空哦
+user.code.message601=密码不能为空哦
+user.code.message602=用户名已经存在，无法注册哦
+```
+
+这个配置与“用户模块starter”定义的配置项类 `UserProperties` 对应的。
+
+### 动态配置 vs 静态配置
+
+在 Nacos 上进行动态配置，优点是修改方便，但缺点是所有集成了 starter 的应用，都需要配置一次（每个应用对应的 *Data Id* 不同）。如果应用很多的话，会增加维护的复杂度。
+
+> 你可以脑补一下，中大型公司的部门比较多，每个部门都管理不同的应用，你作为“用户starter”的开发者要通知很多部门修改配置项，是很麻烦的
+
+如果使用静态配置方式，往往会把配置项写在 starter 项目的 `resources/application.properties` 文件中，那么优点就是封装的更好，每个应用不用再写配置项了，减少了应用维护的复杂度。
+
+所以，实际企业中开发，starter的配置采用哪种方式，就要根据具体需求和企业自身特点做选择
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
