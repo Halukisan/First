@@ -34,7 +34,8 @@ public static void main(String[] args) {
 >这样做可以直接把整个数组全部返回到主函数中
 
 ```
-######## 数组扩展
+#### 数组扩展
+
 ```
 for (String name : tables) {
 
@@ -252,7 +253,7 @@ public static void main(String[] args) {
     System.out.println(str);
 
   }
-```
+ ```
 1. 运用String.valueOf()
 ```
 public static void main(String[] args) {

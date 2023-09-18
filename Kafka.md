@@ -864,15 +864,59 @@ group.addUser(rootUser);
 
 也就是如果将数据重新跑 N 次，结果总是相同的，
 
+## 流式处理
 
+流式处理是指实时的处理一个或者多个事件流，是一种编程范式。
 
+回顾一下之前由那些处理范式：
 
+### 请求与响应
 
+API、Service接口，都属于这种范式。由客户端发起请求，然后等待应用响应。
 
+![](https://style.youkeda.com/img/course/j8/4/2-2.svg)
 
+### 批处理
 
+大多数任务程序都属于这一类比如：
 
+统计每个学生的学习情况，我们系统会在每天凌晨将每个学生当天的学习情况做一个统计，比如学习总时长，代码量等。
 
+为了统计网页访问量，我们系统同样在每天凌晨统计当天的访问次数PV，和当天的访问人数UV。
+
+这些批处理的特定，对时间要求不高，但需要高吞吐量。
+
+![](https://style.youkeda.com/img/course/j8/4/2-3.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+### 流式处理
+
+批处理既高效也经济，但近几年为了及时、高效的做出决策，需要系统能在更短的时间内提供有效的数据。这种批处理范式的高延迟，明显不能满足业务的要求，因此出现了流式处理。
+
+比如网络报警、交易报警、股票数据等。
+
+这些业务是持续性的，他们希望系统能及时给出响应结果，这就是流式处理的应用领域
+
+![](https://style.youkeda.com/img/course/j8/4/2-4.png?x-oss-process=image/resize,w_800/watermark,image_d2F0ZXJtYXNrLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzEwMA==,t_60,g_se,x_10,y_10)
+
+低延迟、持续性、高吞吐。
+
+#### 基本概念
+
+1.事件时间
+
+> 指事件或者数据产生的时间，也就是kafka消息的时间
+
+2.处理时间
+
+> 指事件或者数据流应用处理的时间
+
+3.摄入时间
+
+> 被处理以后的时间保存到kafka主题的时间。
+
+**状态**
+
+流式处理中的状态即对每个消息的处理都是相互独立的
 
 
 
