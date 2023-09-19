@@ -4,11 +4,11 @@
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 1000010;
-
+    
     int q[N],n;
-
+    
     void quick_sort(int q[],int l,int r){
         if(l>=r)return;
         
@@ -22,7 +22,7 @@
         quick_sort(q,l,j);
         quick_sort(q,j+1,r);
     }
-
+    
     int main(){
         scanf("%d",&n);
         for(int i = 0;i<n;i++)scanf("%d",&q[i]);
@@ -38,11 +38,11 @@
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;
-
+    
     int n,q[N],tmp[N];
-
+    
     void merge_sort(int q[],int l,int r){
         if(l>=r)return;
         
@@ -111,12 +111,12 @@
 
        #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;
-
+    
     int n,m;
     int p[N];
-
+    
     int find(int x){    //返回x的祖宗节点 + 路径压缩
         if(p[x]!=x)p[x] = find(p[x]);
         return p[x];    //p[x]表示x的父亲节点
@@ -135,7 +135,7 @@
                 else puts("No");
             }
         }
-
+    
         return 0;
     }
 
@@ -145,11 +145,11 @@
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;
-
+    
     int A[N],B[N],C[N];
-
+    
     int add(int a[],int b[],int c[],int cnt){
         int t = 0;
         for(int i = 1;i<=cnt;i++){
@@ -161,7 +161,7 @@
         
         return cnt;
     }
-
+    
     int main(){
         string a,b;
         cin>>a>>b;
@@ -232,20 +232,20 @@
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;
-
+    
     int a[N],s[N];
-
+    
     int main(){
-
+    
         ios::sync_with_stdio(false);
-
+    
         int n,m;
         cin>>n>>m;
-
+    
         for(int i = 1;i<=n;i++)cin>>a[i];
-
+    
         s[0] = 0;
         for(int i = 1;i<=n;i++)s[i] = s[i-1]+a[i];
         
@@ -289,11 +289,11 @@ s\[x2, y2] - s\[x1 - 1, y2] - s\[x2, y1 - 1] + s\[x1 - 1, y1 - 1]
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 1010;
     int n,m,q;
     int s[N][N];
-
+    
     int main(){
         cin>>n>>m>>q;
         for(int i = 1;i<=n;i++){
@@ -445,9 +445,9 @@ int main(){
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 1e5+10;
-
+    
     int q[N];
         
     int main(){//队列的顶部在下面，底部在上面
@@ -506,11 +506,11 @@ int main(){
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;//栈是一个上面开口的长方体，
-
+    
     int stk[N],tt;//tt为栈的顶部，即开口的部分
-
+    
     int main(){
         int n;
         cin>>n;
@@ -531,7 +531,7 @@ int main(){
 **一、什么是KMP算法及一些基本概念**
 首先，什么是KMP算法。这是一个字符串匹配算法，对暴力的那种一一比对的方法进行了优化，使时间复杂度大大降低（我不会算时间复杂度。。。，目前也只能这么理解，还有KMP是取的三个发明人的名字首字母组成的名字）。
 
-​ 然后是一些基本概念：
+ 然后是一些基本概念：
 
 1、s\[ ]是模式串，即比较长的字符串。
 2、p\[ ]是模板串，即比较短的字符串。（这样可能不严谨。。。）
@@ -567,7 +567,7 @@ next\[ ]	0	0	0	1	2
 **三、匹配思路和实现代码**
 ​ KMP主要分两步：求next数组、匹配字符串。个人觉得匹配操作容易懂一些，疑惑我一整天的是求next数组的思想。所以先把匹配字符串讲一下。
 
-​ s串 和 p串都是从1开始的。i 从1开始，j 从0开始，每次s\[ i ] 和p\[ j + 1 ]比较
+ s串 和 p串都是从1开始的。i 从1开始，j 从0开始，每次s\[ i ] 和p\[ j + 1 ]比较
 
 ![](https://cdn.acwing.com/media/article/image/2020/06/12/31041_8e70c3eeac-%E5%8C%B9%E9%85%8D.PNG)
 
@@ -607,9 +607,9 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
     for(int i = 2, j = 0; i <= m; i++)
     {
         while(j && p[i] != p[j+1]) j = next[j];
-
+    
         if(p[i] == p[j+1]) j++;
-
+    
         next[i] = j;
     }
 
@@ -619,19 +619,19 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
 
     // 注：这不是题目的AC代码，是一个最基本的模板代码
     #include <iostream>
-
+    
     using namespace std;
-
+    
     const int N = 100010, M = 10010; //N为模式串长度，M匹配串长度
-
+    
     int n, m;
     int ne[M]; //next[]数组，避免和头文件next冲突
     char s[N], p[M];  //s为模式串， p为匹配串
-
+    
     int main()
     {
         cin >> n >> s+1 >> m >> p+1;  //下标从1开始
-
+    
         //求next[]数组
         for(int i = 2, j = 0; i <= m; i++)
         {
@@ -652,7 +652,7 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
                 j = ne[j];            //再次继续匹配
             }
         }
-
+    
         return 0;
     }
 
@@ -709,17 +709,17 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
         ne[idx] = h[k];                      //存储x所在结点的指针（更改链表指向，建立链式结构）
         h[k] = idx ++;                      //h[k]储存指向新插入的数据指针（头指针指向新插入的数据）之后idx++
     }
-
+    
                                              //h[0] = -1 , ne[0] = h[0] = -1 , h[0] = idx = 0;
                                              //h[0] = 0 , ne[1] = h[0] = 0 , h[0] = idx = 1;
     bool find(int x)
     {   int k = (x % N + N) % N;
         for(int i = h[k];i != -1;i = ne[i])  //h[k] 是头节点，ne[h[k]] 是头节点的前一结点
          if(e[i] == x) return true;
-
+    
          return false;
     }
-
+    
     int main()
     {   cin >> n;
         memset(h , -1 ,sizeof h);            //初始化每个拉链处的头结点均为-1，模拟链表的头结点指向NULL(-1)
@@ -734,7 +734,7 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
                 else cout << "No"<< endl;
             }
         }
-
+    
         return 0;
     }
 
@@ -748,7 +748,7 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
 
     1. const int N = 200003; 
         1.1开放寻址操作过程中会出现冲突的情况，一般会开成两倍的空间，减少数据的冲突
-
+    
         1.2如果使用%来计算索引， 把哈希表的长度设计为素数（质数）可以大大减小哈希冲突
         比如
         10%8 = 2      10%7 = 3
@@ -758,17 +758,17 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
         50%8 = 2      50%7 = 1
         60%8 = 4      60%7 = 4
         70%8 = 6      70%7 = 0
-
+    
     这就是为什么要找第一个比空间大的质数
 
 
 
     2.const int null = 0x3f3f3f3f 和  memset(h, 0x3f, sizeof h)之间的关系;
-
+    
         首先，必须要清楚memset函数到底是如何工作的
         先考虑一个问题，为什么memset初始化比循环更快？
         答案：memset更快，为什么？因为memset是直接对内存进行操作。memset是按字节（byte）进行复制的
-
+    
         void * memset(void *_Dst,int _Val,size_t _Size);
         这是memset的函数声明
         第一个参数为一个指针，即要进行初始化的首地址
@@ -776,21 +776,21 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
         第三个参数是要初始化首地址后多少个字节
         看到第二个参数和第三个参数，是不是又感觉了
         h是int类型，其为个字节， 第二个参数0x3f八位为一个字节，所以0x3f * 4(从高到低复制4份) = 0x3f3f3f3f
-
+    
         这也说明了为什么在memset中不设置除了-1， 0以外常见的值
         比如1, 字节表示为00000001，memset(h, 1, 4)则表示为0x01010101
 
 
 
     3. 为什么要取0x3f3f3f,为什么不直接定义无穷大INF = 0x7fffffff,即32个1来初始化呢？
-
+    
     3.1 首先，0x3f3f3f的体验感很好，0x3f3f3f3f的十进制是1061109567，也就是10^9级别的
         （和0x7fffffff一个数量级），而一般场合下的数据都是小于10^9的，所以它可以作为无穷大
         使用而不致出现数据大于无穷大的情形。
         比如0x3f3f3f3f+0x3f3f3f3f=2122219134，这非常大但却没有超过32-bit，int的表示范围，
         所以0x3f3f3f3f还满足了我们“无穷大加无穷大还是无穷大”的需求。
         但是INF不同，一旦加上某个值，很容易上溢，数值有可能转成负数，有兴趣的小伙伴可以去试一试。
-
+    
     3.2 0x3f3f3f3f还能给我们带来一个意想不到的额外好处：如果我们想要将某个数组清零，
         我们通常会使用memset(a,0,sizeof(a))这样的代码来实现（方便而高效），但是当我们想
         将某个数组全部赋值为无穷大时（例如解决图论问题时邻接矩阵的初始化），就不能使用
@@ -805,10 +805,10 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
     #include<iostream>
     #include<cstring>
     using namespace std;
-
+    
     const int N = 200003,null = 0x3f3f3f3f;
     int h[N];
-
+    
     /*
     memset是一个初始化函数，作用是将某一块内存中的全部设置为指定的值
     s指向要填充的内存块。
@@ -816,7 +816,7 @@ while(j && s\[i] != p\[j+1]) j = ne\[j];
     n是要被设置该值的字符数。
     返回类型是一个指向存储区s的指针。
     */
-
+    
     int find(int x){
         int k = (x%N+N)%N;
         while(h[k]!=null&&h[k]!=x){//当前的位置不为空，并且当前位置的值不为x。
@@ -916,16 +916,16 @@ Trie树又称字典树、单词查找树。是一种能够高效存储和查找�
 
     //Trie树快速存储字符集合和快速查询字符集合
     #include <iostream>
-
+    
     using namespace std;
-
+    
     const int N = 100010;
     //son[][]存储子节点的位置，分支最多26条；
     //cnt[]存储以某节点结尾的字符串个数（同时也起标记作用）
     //idx表示当前要插入的节点是第几个,每创建一个节点值+1
     int son[N][26], cnt[N], idx;
     char str[N];
-
+    
     void insert(char *str)
     {
         int p = 0;  //类似指针，指向当前节点
@@ -937,7 +937,7 @@ Trie树又称字典树、单词查找树。是一种能够高效存储和查找�
         }
         cnt[p]++;  //结束时的标记，也是记录以此节点结束的字符串个数
     }
-
+    
     int query(char *str)
     {
         int p = 0;
@@ -949,21 +949,21 @@ Trie树又称字典树、单词查找树。是一种能够高效存储和查找�
         }
         return cnt[p];  //返回字符串出现的次数
     }
-
+    
     int main()
     {
         int m;
         cin >> m;
-
+    
         while(m--)
         {
             char op[2];
             scanf("%s%s", op, str);
-
+    
             if(*op == 'I') insert(str);
             else printf("%d\n", query(str));
         }
-
+    
         return 0;
     }
 
@@ -1004,14 +1004,14 @@ Trie树又称字典树、单词查找树。是一种能够高效存储和查找�
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 100010;
-
+    
     int n,m;
     int h[N],cnt;
     //h[i] 表示第i个结点存储的值，i从1开始，2*i是左子节点，2*i + 1是右子节点
     //cnt 既表示堆里存储的元素个数，又表示最后一个结点的下标
-
+    
     void down(int u){
         int t = u;//t存储三个点中最小的节点的下标，初始化为当前节点u。
         if(u*2<=siz && h[u*2]<h[t])t = u*2;//当前节点的左儿子存在 并且 当前节点的左儿子的值小于当前节点。更新t的值为左儿子的下标
@@ -1022,7 +1022,7 @@ Trie树又称字典树、单词查找树。是一种能够高效存储和查找�
                     //u不用调整了，但t情况不明，可能需要调整。直到它比左右子节点都小
         }
     }
-
+    
     int main(){
         scanf("%d%d",&n,&m);
         for(int i = 1;i<=n;i++)scanf("%d",&h[i]);
@@ -1135,12 +1135,12 @@ dfs 最重要的是搜索顺序。用什么顺序遍历所有方案。
 
     #include<iostream>
     using namespace std;
-
+    
     const int N = 10;
     int path[N];//保存序列
     int stats[N];//数字是否被用过
     int n;
-
+    
     void dfs(int u){//深度优先搜索 u为当前用到的位置
         if(u > n){  //n个位置填完了
             for(int i = 1;i<=n;i++){
@@ -1167,3 +1167,99 @@ dfs 最重要的是搜索顺序。用什么顺序遍历所有方案。
     }
 
 ![de6def188d77d9b7e0b2589138253ea.jpg](https://note.youdao.com/yws/res/284/WEBRESOURCE27ba743751990d159d37aeb63f7c38da)
+
+[2560. 打家劫舍 IV](https://leetcode.cn/problems/house-robber-iv/)
+
+中等
+
+相关标签
+
+相关企业
+
+提示
+
+沿街有一排连续的房屋。每间房屋内都藏有一定的现金。现在有一位小偷计划从这些房屋中窃取现金。
+
+由于相邻的房屋装有相互连通的防盗系统，所以小偷 **不会窃取相邻的房屋** 。
+
+小偷的 **窃取能力** 定义为他在窃取过程中能从单间房屋中窃取的 **最大金额** 。
+
+给你一个整数数组 `nums` 表示每间房屋存放的现金金额。形式上，从左起第 `i` 间房屋中放有 `nums[i]` 美元。
+
+另给你一个整数 `k` ，表示窃贼将会窃取的 **最少** 房屋数。小偷总能窃取至少 `k` 间房屋。
+
+返回小偷的 **最小** 窃取能力。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [2,3,5,9], k = 2
+输出：5
+解释：
+小偷窃取至少 2 间房屋，共有 3 种方式：
+- 窃取下标 0 和 2 处的房屋，窃取能力为 max(nums[0], nums[2]) = 5 。
+- 窃取下标 0 和 3 处的房屋，窃取能力为 max(nums[0], nums[3]) = 9 。
+- 窃取下标 1 和 3 处的房屋，窃取能力为 max(nums[1], nums[3]) = 9 。
+因此，返回 min(5, 9, 9) = 5 。
+```
+
+**示例 2：**
+
+```
+输入：nums = [2,7,9,3,1], k = 2
+输出：2
+解释：共有 7 种窃取方式。窃取能力最小的情况所对应的方式是窃取下标 0 和 4 处的房屋。返回 max(nums[0], nums[4]) = 2 。
+```
+
+```java
+class Solution {
+    public int minCapability(int[] nums, int k) {
+        int lower = Arrays.stream(nums).min().getAsInt(); // 找到最小的能力下界
+        int upper = Arrays.stream(nums).max().getAsInt(); // 找到最大的能力上界
+        
+        while (lower <= upper) {
+            int middle = (lower + upper) / 2; // 计算中间值
+            
+            int count = 0; // 用于计算分配任务的工人数量
+            boolean visited = false; // 用于确保每个工人只分配一次任务
+            
+            for (int x : nums) {
+                if (x <= middle && !visited) {
+                    count++; // 如果当前任务的能力要求不超过中间值，分配给一个工人
+                    visited = true; // 标记工人已分配任务
+                } else {
+                    visited = false; // 如果任务的能力要求超过了中间值，不分配任务，重置 visited
+                }
+            }
+            
+            if (count >= k) {
+                upper = middle - 1; // 如果分配的工人数量满足或超过 k，减小上界
+            } else {
+                lower = middle + 1; // 如果分配的工人数量不足 k，增加下界
+            }
+        }
+        
+        return lower; // 返回最小的能力下界，这个能力可以满足分配 k 个任务的要求
+    }
+}
+```
+
+这段代码使用二分查找来找到满足分配 `k` 个任务的最小能力要求。以下是它的详细步骤：
+
+1. 首先，它找到了任务的能力要求中的最小值 `lower` 和最大值 `upper`。这些值将用于定义搜索范围。
+
+2. 接下来，它进入了一个二分查找的循环，直到 `lower` 大于 `upper` 才结束。
+
+3. 在每一次迭代中，它计算中间值 `middle`。
+
+4. 然后，它模拟了分配任务的过程。对于每个任务的能力要求 `x`，如果 `x` 不超过当前中间值 `middle`，并且之前的任务没有分配给工人（通过 `visited` 来判断），则将任务分配给一个工人，同时标记 `visited` 为 `true`。
+
+5. 如果分配的工人数量 `count` 大于等于 `k`，表示当前中间值 `middle` 可以满足要求，因此将 `upper` 缩小为 `middle - 1` 继续搜索更小的能力。
+
+6. 如果分配的工人数量 `count` 小于 `k`，表示当前中间值 `middle` 不足以满足要求，因此将 `lower` 增加为 `middle + 1` 继续搜索更大的能力。
+
+7. 最终，当 `lower` 超过了 `upper` 时，二分查找结束，返回 `lower` 作为满足分配 `k` 个任务要求的最小能力。
+
+这段代码的核心思想是利用二分查找来逼近最小的能力要求，以满足分配 `k` 个任务的要求。希望这个解释对您有所帮助。如果您有任何进一步的问题，请随时提问
